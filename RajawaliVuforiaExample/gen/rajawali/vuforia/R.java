@@ -8,34 +8,5 @@ package rajawali.vuforia;
 
 public final class R {
 	public static final class raw {
-		public static final int skybox_material_fragment = 0x7f040019;
-		public static final int simple_material_fragment = 0x7f040017;
-		public static final int diffuse_material_vertex = 0x7f04000c;
-		public static final int specular_mask_material_fragment = 0x7f04001b;
-		public static final int gouraud_material_fragment = 0x7f04000e;
-		public static final int simple_material_vertex = 0x7f040018;
-		public static final int masked_material_vertex = 0x7f040011;
-		public static final int diffuse_material_fragment = 0x7f04000b;
-		public static final int phong_material_vertex = 0x7f040015;
-		public static final int gouraud_material_vertex = 0x7f04000f;
-		public static final int bumpmap_material_fragment = 0x7f040003;
-		public static final int masked_material_fragment = 0x7f040010;
-		public static final int toon_material_fragment = 0x7f04001e;
-		public static final int color_picker_material_vertex = 0x7f040006;
-		public static final int video_material_fragment = 0x7f04001f;
-		public static final int copy_material_vertex = 0x7f040008;
-		public static final int particle_material_vertex = 0x7f040013;
-		public static final int video_material_vertex = 0x7f040020;
-		public static final int cube_map_material_fragment = 0x7f040009;
-		public static final int particle_material_fragment = 0x7f040012;
-		public static final int simple_alpha_material_fragment = 0x7f040016;
-		public static final int color_picker_material_fragment = 0x7f040005;
-		public static final int sphere_material_vertex = 0x7f04001d;
-		public static final int sphere_material_fragment = 0x7f04001c;
-		public static final int phong_material_fragment = 0x7f040014;
-		public static final int bumpmap_phong_material = 0x7f040004;
-		public static final int cube_map_material_vertex = 0x7f04000a;
-		public static final int copy_material_fragment = 0x7f040007;
-		public static final int skybox_material_vertex = 0x7f04001a;
 	}
 }

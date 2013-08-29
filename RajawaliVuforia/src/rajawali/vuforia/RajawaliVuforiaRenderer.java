@@ -4,7 +4,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import rajawali.math.Quaternion;
-import rajawali.math.Vector3;
+import rajawali.math.vector.Vector3;
 import rajawali.renderer.RajawaliRenderer;
 import android.content.Context;
 
@@ -13,6 +13,8 @@ import com.qualcomm.QCAR.QCAR;
 public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	private Vector3 mPosition;
 	private Quaternion mOrientation;
+	private double[] mModelViewMatrix;
+	private int mI = 0;
 	
 	public native void initRendering();
 	public native void updateRendering(int width, int height);
@@ -27,6 +29,7 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		mOrientation = new Quaternion();
 		getCurrentScene().alwaysClearColorBuffer(false);
 		getCurrentCamera().setFarPlane(2500);
+		mModelViewMatrix = new double[16];
 	}
 	
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -46,8 +49,8 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	public void foundFrameMarker(int markerId, float[] modelViewMatrix) {
 		mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
 				-modelViewMatrix[14]);
-
-		mOrientation.fromRotationMatrix(modelViewMatrix);
+		copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
+		mOrientation.fromRotationMatrix(mModelViewMatrix);
 		mOrientation.y = -mOrientation.y;
 		mOrientation.z = -mOrientation.z;
 		
@@ -57,8 +60,8 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	public void foundImageMarker(String trackableName, float[] modelViewMatrix) {
 		mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
 				-modelViewMatrix[14]);
-
-		mOrientation.fromRotationMatrix(modelViewMatrix);
+		copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
+		mOrientation.fromRotationMatrix(mModelViewMatrix);
 		mOrientation.y = -mOrientation.y;
 		mOrientation.z = -mOrientation.z;
 		
@@ -72,5 +75,13 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	public void onDrawFrame(GL10 glUnused) {
 		renderFrame();
 		super.onDrawFrame(glUnused);
+	}
+	
+	private void copyFloatToDoubleMatrix(float[] src, double[] dst)
+	{
+		for(mI = 0; mI < 16; mI++)
+		{
+			dst[mI] = src[mI];
+		}
 	}
 }
