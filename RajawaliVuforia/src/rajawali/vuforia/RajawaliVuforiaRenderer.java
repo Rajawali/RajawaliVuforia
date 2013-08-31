@@ -28,6 +28,7 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		mPosition = new Vector3();
 		mOrientation = new Quaternion();
 		getCurrentScene().alwaysClearColorBuffer(false);
+		getCurrentCamera().setNearPlane(10);
 		getCurrentCamera().setFarPlane(2500);
 		mModelViewMatrix = new double[16];
 	}
