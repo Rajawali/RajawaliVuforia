@@ -5,26 +5,27 @@ import java.util.zip.GZIPInputStream;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import rajawali.BaseObject3D;
+import rajawali.Object3D;
 import rajawali.SerializedObject3D;
 import rajawali.animation.mesh.SkeletalAnimationObject3D;
 import rajawali.animation.mesh.SkeletalAnimationSequence;
 import rajawali.lights.DirectionalLight;
-import rajawali.materials.DiffuseMaterial;
-import rajawali.materials.PhongMaterial;
+import rajawali.materials.Material;
+import rajawali.materials.methods.DiffuseMethod;
+import rajawali.materials.methods.SpecularMethod;
 import rajawali.materials.textures.Texture;
 import rajawali.math.Quaternion;
-import rajawali.math.Vector3;
-import rajawali.parser.md5.MD5AnimParser;
-import rajawali.parser.md5.MD5MeshParser;
+import rajawali.math.vector.Vector3;
+import rajawali.parser.md5.LoaderMD5Anim;
+import rajawali.parser.md5.LoaderMD5Mesh;
 import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
 public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	private DirectionalLight mLight;
 	private SkeletalAnimationObject3D mBob;
-	private BaseObject3D mF22;
-	private BaseObject3D mAndroid;
+	private Object3D mF22;
+	private Object3D mAndroid;
 
 	public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
@@ -34,6 +35,8 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mLight = new DirectionalLight(.1f, 0, -1.0f);
 		mLight.setColor(1.0f, 1.0f, 0.8f);
 		mLight.setPower(1);
+		
+		getCurrentScene().addLight(mLight);
 
 		try {
 			//
@@ -41,15 +44,14 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			// http://www.katsbits.com/download/models/)
 			//
 
-			MD5MeshParser meshParser = new MD5MeshParser(this,
+			LoaderMD5Mesh meshParser = new LoaderMD5Mesh(this,
 					R.raw.boblampclean_mesh);
 			meshParser.parse();
 			mBob = (SkeletalAnimationObject3D) meshParser
 					.getParsedAnimationObject();
 			mBob.setScale(2);
-			mBob.addLight(mLight);
 
-			MD5AnimParser animParser = new MD5AnimParser("dance", this,
+			LoaderMD5Anim animParser = new LoaderMD5Anim("dance", this,
 					R.raw.boblampclean_anim);
 			animParser.parse();
 			mBob.setAnimationSequence((SkeletalAnimationSequence) animParser
@@ -72,13 +74,14 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 					.readObject();
 			fis.close();
 
-			mF22 = new BaseObject3D(serializedObj);
+			mF22 = new Object3D(serializedObj);
 			mF22.setScale(30);
-			mF22.addLight(mLight);
 			addChild(mF22);
 			
-			DiffuseMaterial f22Material = new DiffuseMaterial();
-			f22Material.addTexture(new Texture(R.drawable.f22));
+			Material f22Material = new Material();
+			f22Material.enableLighting(true);
+			f22Material.setDiffuseMethod(new DiffuseMethod.Lambert());
+			f22Material.addTexture(new Texture("f22Texture", R.drawable.f22));
 			
 			mF22.setMaterial(f22Material);
 			
@@ -93,13 +96,14 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 					.readObject();
 			fis.close();
 			
-			mAndroid = new BaseObject3D(serializedObj);
+			mAndroid = new Object3D(serializedObj);
 			mAndroid.setScale(14);
-			mAndroid.addLight(mLight);
 			addChild(mAndroid);
 			
-			PhongMaterial androidMaterial = new PhongMaterial();
-			androidMaterial.setUseSingleColor(true);
+			Material androidMaterial = new Material();
+			androidMaterial.enableLighting(true);
+			androidMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+			androidMaterial.setSpecularMethod(new SpecularMethod.Phong());
 			mAndroid.setColor(0x00dd00);
 			mAndroid.setMaterial(androidMaterial);
 		} catch (Exception e) {
