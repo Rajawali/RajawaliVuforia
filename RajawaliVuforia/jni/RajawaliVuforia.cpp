@@ -51,9 +51,11 @@ bool scanningMode = false;
 bool showStartScanButton = false;
 static const size_t CONTENT_MAX = 256;
 char lastTargetId[CONTENT_MAX];
+char targetMetadata[CONTENT_MAX];
 
 static const char* kAccessKey = "a75960aa97c3b72a76eb997f9e40d210d5e40bf2";
 static const char* kSecretKey = "aac883379f691a2550e80767ccd445ffbaa520ca";
+
 jobject activityObj;
 
 
@@ -114,9 +116,9 @@ class ImageTargets_UpdateCallback : public QCAR::UpdateCallback
 
     		                 if (strcmp(result->getUniqueTargetId(), lastTargetId) != 0)
     		                 {
-    		                      // If the target has changed...
-    		                      // app-specific: do something
-    		                      // (e.g. generate new 3D model or texture)
+    		                	 // Copies the new target Metadata
+   	                            snprintf(targetMetadata, CONTENT_MAX, "%s", result->getMetaData());
+   	                            LOG(targetMetadata);
 
     		                 }
 
@@ -320,7 +322,7 @@ void
 initStateVariables()
 {
     lastTargetId[0] = '\0';
-    scanningMode = true;
+    scanningMode = false;
 }
 
 void

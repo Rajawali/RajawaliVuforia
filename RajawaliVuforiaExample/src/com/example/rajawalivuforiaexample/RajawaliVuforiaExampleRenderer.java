@@ -133,6 +133,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			mBob.setVisible(true);
 			mBob.setPosition(position);
 			mBob.setOrientation(orientation);
+			mBob.setScale(.5);
 		}
 		if(trackableName.equals("stones"))
 		{

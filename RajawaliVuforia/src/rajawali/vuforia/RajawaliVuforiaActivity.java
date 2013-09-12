@@ -54,9 +54,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     private int mFocusMode;
     private InitQCARTask mInitQCARTask;
     private Object mShutdownLock = new Object();
-    private Button mStartScanButton;
     private InitCloudRecoTask mInitCloudRecoTask;
-	private RajawaliVuforiaActivity mUILayout;
     
 	static
 	{
@@ -378,34 +376,9 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     {
         initApplicationNative(mScreenWidth, mScreenHeight);
         
-      //Add button for Cloud Reco:
-        mStartScanButton = new Button(this);
-        mStartScanButton.setText("Start Scanning");
-         
-        mStartScanButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    enterScanningModeNative();
-                     mStartScanButton.setVisibility(View.GONE);
-                 }
-        });
-         
         createSurfaceView();
-        
-        mUILayout = this;
-        mUILayout.addContentView(mStartScanButton, 
-            new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     }
-    
-    public void showStartScanButton()
-    {
-        this.runOnUiThread(new Runnable() {
-                public void run() {
-                    if  (mStartScanButton != null)
-                        mStartScanButton.setVisibility(View.VISIBLE);
-                 }
-         });
-    }
-    
+  
     protected native void initApplicationNative(int width, int height);
     protected native void setActivityPortraitMode(boolean isPortrait);
     protected native void deinitApplicationNative();
