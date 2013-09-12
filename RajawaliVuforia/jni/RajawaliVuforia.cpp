@@ -76,6 +76,7 @@ class ImageTargets_UpdateCallback : public QCAR::UpdateCallback
     		dataSetToActivate = NULL;
     	}
 		//NEW code for Cloud Reco
+    	if(scanningMode)
     	{
     		QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
     		QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
