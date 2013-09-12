@@ -9,7 +9,10 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
+import android.widget.Button;
 
 import com.qualcomm.QCAR.QCAR;
 
@@ -22,12 +25,26 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     private static final int APPSTATUS_INIT_QCAR        = 1;
     private static final int APPSTATUS_INIT_APP_AR      = 2;
     private static final int APPSTATUS_INIT_TRACKER     = 3;
-    private static final int APPSTATUS_INITED           = 4;
-    private static final int APPSTATUS_CAMERA_STOPPED   = 5;
-    private static final int APPSTATUS_CAMERA_RUNNING   = 6;
+    private static final int APPSTATUS_INIT_CLOUDRECO 	= 4;
+    private static final int APPSTATUS_INITED           = 5;
+    private static final int APPSTATUS_CAMERA_STOPPED   = 6;
+    private static final int APPSTATUS_CAMERA_RUNNING   = 7;
     private static final int FOCUS_MODE_NORMAL = 0;
     private static final int FOCUS_MODE_CONTINUOUS_AUTO = 1;
 
+ // These codes match the ones defined in TargetFinder.h for Cloud Reco service
+    static final int INIT_SUCCESS = 2;
+    static final int INIT_ERROR_NO_NETWORK_CONNECTION = -1;
+    static final int INIT_ERROR_SERVICE_NOT_AVAILABLE = -2;
+    static final int UPDATE_ERROR_AUTHORIZATION_FAILED = -1;
+    static final int UPDATE_ERROR_PROJECT_SUSPENDED = -2;
+    static final int UPDATE_ERROR_NO_NETWORK_CONNECTION = -3;
+    static final int UPDATE_ERROR_SERVICE_NOT_AVAILABLE = -4;
+    static final int UPDATE_ERROR_BAD_FRAME_QUALITY = -5;
+    static final int UPDATE_ERROR_UPDATE_SDK = -6;
+    static final int UPDATE_ERROR_TIMESTAMP_OUT_OF_RANGE = -7;
+    static final int UPDATE_ERROR_REQUEST_TIMEOUT = -8;
+    
 	private static final String NATIVE_LIB_QCAR = "QCAR";
 	private static final String NATIVE_LIB_RAJAWALI_VUFORIA = "RajawaliVuforia";
 	
@@ -37,13 +54,77 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     private int mFocusMode;
     private InitQCARTask mInitQCARTask;
     private Object mShutdownLock = new Object();
+    private Button mStartScanButton;
+    private InitCloudRecoTask mInitCloudRecoTask;
+	private RajawaliVuforiaActivity mUILayout;
     
 	static
 	{
 		loadLibrary(NATIVE_LIB_QCAR);
 		loadLibrary(NATIVE_LIB_RAJAWALI_VUFORIA);
 	}
-	
+
+	 /** An async task to initialize cloud-based recognition asynchronously. */
+    private class InitCloudRecoTask extends AsyncTask<Void, Integer, Boolean>
+    {
+        // Initialize with invalid value
+        private int mInitResult = -1;
+
+        protected Boolean doInBackground(Void... params)
+        {
+            // Prevent the onDestroy() method to overlap:
+            synchronized (mShutdownLock)
+            {
+                // Init cloud-based recognition:
+                mInitResult = initCloudReco();
+                return mInitResult == INIT_SUCCESS;
+            }
+        }
+
+
+        protected void onPostExecute(Boolean result)
+        {
+            RajLog.d("InitCloudRecoTask::onPostExecute: execution "
+                    + (result ? "successful" : "failed"));
+
+            if (result)
+            {
+                // Done loading the tracker, update application status:
+                updateApplicationStatus(APPSTATUS_INITED);
+             }
+            else
+            {
+                // Create dialog box for display error:
+                AlertDialog dialogError = new AlertDialog.Builder(
+                        RajawaliVuforiaActivity.this).create();
+                dialogError.setButton(DialogInterface.BUTTON_POSITIVE,
+                        getString(R.string.button_OK),
+                        new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog,
+                                    int which)
+                            {
+                                // Exiting application
+                                System.exit(1);
+                            }
+                        });
+
+                // Show dialog box with error message:
+                String logMessage = "Failed to initialize CloudReco.";
+
+                if (mInitResult == INIT_ERROR_NO_NETWORK_CONNECTION)
+                    logMessage = "Failed to initialize CloudReco because "
+                            + "the device has no network connection.";
+                else if (mInitResult == INIT_ERROR_SERVICE_NOT_AVAILABLE)
+                    logMessage = "Failed to initialize CloudReco because "
+                            + "the service is not available.";
+
+                dialogError.setMessage(logMessage);
+                dialogError.show();
+            }
+        }
+    }
+    
     /** An async task to initialize QCAR asynchronously. */
     private class InitQCARTask extends AsyncTask<Void, Integer, Boolean>
     {
@@ -174,10 +255,18 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
             mInitQCARTask = null;
         }
 
+        if (mInitCloudRecoTask != null
+                && mInitCloudRecoTask.getStatus() != InitCloudRecoTask.Status.FINISHED)
+        {
+            mInitCloudRecoTask.cancel(true);
+            mInitCloudRecoTask = null;
+        }
+        
         synchronized (mShutdownLock) {
         	destroyTrackerData();
             deinitApplicationNative();
             deinitTracker();
+            deinitCloudReco();
             QCAR.deinit();
         }
 
@@ -222,10 +311,22 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
             case APPSTATUS_INIT_TRACKER:
             	setupTracker();                
                 break;
-
+                
+            case APPSTATUS_INIT_CLOUDRECO:
+                try
+                {
+                    mInitCloudRecoTask = new InitCloudRecoTask();
+                    mInitCloudRecoTask.execute();
+                }
+                catch (Exception e)
+                {
+                    RajLog.e("Failed to initialize CloudReco");
+                }
+                break;
+                
             case APPSTATUS_INIT_APP_AR:
                 initApplicationAR();
-                updateApplicationStatus(APPSTATUS_INITED);
+                updateApplicationStatus(APPSTATUS_INIT_CLOUDRECO);
                 break;
 
             case APPSTATUS_INITED:
@@ -276,8 +377,33 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     protected void initApplicationAR()
     {
         initApplicationNative(mScreenWidth, mScreenHeight);
-
+        
+      //Add button for Cloud Reco:
+        mStartScanButton = new Button(this);
+        mStartScanButton.setText("Start Scanning");
+         
+        mStartScanButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    enterScanningModeNative();
+                     mStartScanButton.setVisibility(View.GONE);
+                 }
+        });
+         
         createSurfaceView();
+        
+        mUILayout = this;
+        mUILayout.addContentView(mStartScanButton, 
+            new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+    }
+    
+    public void showStartScanButton()
+    {
+        this.runOnUiThread(new Runnable() {
+                public void run() {
+                    if  (mStartScanButton != null)
+                        mStartScanButton.setVisibility(View.VISIBLE);
+                 }
+         });
     }
     
     protected native void initApplicationNative(int width, int height);
@@ -293,6 +419,10 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     protected native void setProjectionMatrix();
     protected native boolean autofocus();
     protected native boolean setFocusMode(int mode);
+    public native int initCloudReco();
+    public native void deinitCloudReco();
+    public native void enterScanningModeNative();
+    public native int initCloudRecoTask(); 
 
     /** A helper for loading native libraries stored in "libs/armeabi*". */
     public static boolean loadLibrary(String nLibName)

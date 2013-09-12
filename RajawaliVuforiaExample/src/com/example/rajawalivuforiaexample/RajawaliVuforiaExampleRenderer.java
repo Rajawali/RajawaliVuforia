@@ -128,6 +128,12 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundImageMarker(String trackableName, Vector3 position,
 			Quaternion orientation) {
+		if(trackableName.equals("SamsungGalaxyS4"))
+		{
+			mBob.setVisible(true);
+			mBob.setPosition(position);
+			mBob.setOrientation(orientation);
+		}
 		if(trackableName.equals("stones"))
 		{
 			mF22.setVisible(true);

@@ -23,6 +23,10 @@
 #include <QCAR/Marker.h>
 #include <QCAR/UpdateCallback.h>
 #include <QCAR/DataSet.h>
+#include <QCAR/TargetFinder.h>
+#include <QCAR/Tracker.h>
+#include <QCAR/ImageTarget.h>
+
 
 #include "SampleUtils.h"
 
@@ -42,12 +46,24 @@ QCAR::DataSet* dataSetToActivate= NULL;
 
 QCAR::Matrix44F projectionMatrix;
 
+//New global vars for Cloud Reco
+bool scanningMode = false;
+bool showStartScanButton = false;
+static const size_t CONTENT_MAX = 256;
+char lastTargetId[CONTENT_MAX];
+
+static const char* kAccessKey = "a75960aa97c3b72a76eb997f9e40d210d5e40bf2";
+static const char* kSecretKey = "aac883379f691a2550e80767ccd445ffbaa520ca";
+jobject activityObj;
+
+
 class ImageTargets_UpdateCallback : public QCAR::UpdateCallback
 {
     virtual void QCAR_onUpdate(QCAR::State&)
     {
+
     	if(dataSetToActivate != NULL)
-    	{
+     	{
             QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
             QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
                 trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
@@ -58,6 +74,62 @@ class ImageTargets_UpdateCallback : public QCAR::UpdateCallback
             }
             imageTracker->activateDataSet(dataSetToActivate);
     		dataSetToActivate = NULL;
+    	}
+		//NEW code for Cloud Reco
+    	{
+    		QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    		QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+    		              trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
+
+    		// Get the target finder:
+    		QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+
+    		// Check if there are new results available:
+    		const int statusCode = targetFinder->updateSearchResults();
+
+    		if (statusCode < 0)
+    		{
+    		    char errorMessage[80];
+    		    LOG(errorMessage, "Error with status code %d", statusCode);
+    		}
+    		else if (statusCode == QCAR::TargetFinder::UPDATE_RESULTS_AVAILABLE)
+    		{
+    		    // Process new search results
+    		    if (targetFinder->getResultCount() > 0)
+    		    {
+    		        const QCAR::TargetSearchResult* result = targetFinder->getResult(0);
+
+    		        // Check if this target is suitable for tracking:
+    		        if (result->getTrackingRating() > 0)
+    		        {
+    		            // Create a new Trackable from the result:
+    		            QCAR::Trackable* newTrackable = targetFinder->enableTracking(*result);
+
+    		             if (newTrackable != 0)
+    		             {
+    		                 LOG("Successfully created new trackable '%s' with rating '%d'.",
+
+    		                 newTrackable->getName(), result->getTrackingRating());
+
+    		                 if (strcmp(result->getUniqueTargetId(), lastTargetId) != 0)
+    		                 {
+    		                      // If the target has changed...
+    		                      // app-specific: do something
+    		                      // (e.g. generate new 3D model or texture)
+
+    		                 }
+
+    		                  strcpy(lastTargetId, result->getUniqueTargetId());
+
+    		                  // Stop Cloud Reco scanning
+    		                  targetFinder->stop();
+
+    		                  scanningMode = false;
+    		                  showStartScanButton = true;
+    		              }
+    		          }
+    		      }
+    		}
     	}
     }
 };
@@ -178,7 +250,23 @@ JNIEXPORT void JNICALL
 JNIEXPORT void JNICALL
 Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object)
 {
-    //LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
+
+	//New code for Cloud Reco
+	if (showStartScanButton)
+	{
+	    jclass javaClass = env->GetObjectClass(activityObj);
+	    jmethodID method = env->GetMethodID(javaClass, "showStartScanButton", "()V");
+	    if (method == 0)
+	    {
+	        LOG("Function method() not found.");
+
+	    }else
+	    env->CallVoidMethod(activityObj, method);
+
+	    showStartScanButton = false;
+	}
+
+	//LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
 	jclass ownerClass = env->GetObjectClass(object);
  
     // Clear color and depth buffer 
@@ -226,6 +314,13 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
     QCAR::Renderer::getInstance().end();
 }
 
+// Initialize State Variables for Cloud Reco
+void
+initStateVariables()
+{
+    lastTargetId[0] = '\0';
+    scanningMode = true;
+}
 
 void
 configureVideoBackground()
@@ -292,6 +387,8 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_initApplicationNative(
     // Store screen dimensions
     screenWidth = width;
     screenHeight = height;
+	activityObj = env->NewGlobalRef(obj);
+
 }
 
 
@@ -335,9 +432,18 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_startCamera(JNIEnv *env,
     if(markerTracker != 0)
         markerTracker->start();
 
-    QCAR::Tracker* imageTracker = trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER);
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
     if(imageTracker != 0)
     	imageTracker->start();
+
+    // Start cloud based recognition if we are in scanning mode:
+    if (scanningMode)
+    {
+        QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+        assert (targetFinder != 0);
+
+         targetFinder->startRecognition();
+    }
 }
 
 JNIEXPORT jfloat JNICALL
@@ -377,12 +483,24 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_stopCamera(JNIEnv *,
     if(markerTracker != 0)
         markerTracker->stop();
     
-    QCAR::Tracker* imageTracker = trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER);
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
     if(imageTracker != 0)
     	imageTracker->stop();
 
     QCAR::CameraDevice::getInstance().stop();
+
+    // Stop Cloud Reco:
+    QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+    assert (targetFinder != 0);
+
+    targetFinder->stop();
+
+    // Clears the trackables
+    targetFinder->clearTrackables();
+
     QCAR::CameraDevice::getInstance().deinit();
+
+    initStateVariables();
 }
 
 JNIEXPORT void JNICALL
@@ -476,6 +594,89 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_updateRendering(
     // Reconfigure the video background
     configureVideoBackground();
 }
+
+JNIEXPORT int JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_initCloudReco(
+    JNIEnv *, jobject)
+{
+    LOG("Java_com_qualcomm_QCARSamples_ImageTargets_ImageTargets_initCloudReco");
+
+    QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+            trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
+
+    assert(imageTracker != NULL);
+
+
+    //Get the TargetFinder:
+    QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+    assert(targetFinder != NULL);
+
+    // Start initialization:
+    if (targetFinder->startInit(kAccessKey, kSecretKey))
+    {
+        targetFinder->waitUntilInitFinished();
+    }
+
+    int resultCode = targetFinder->getInitState();
+    if ( resultCode != QCAR::TargetFinder::INIT_SUCCESS)
+    {
+        LOG("Failed to initialize target finder.");
+        return resultCode;
+    }
+
+    // Use the following calls if you would like to customize the color of the UI
+    // targetFinder->setUIScanlineColor(1.0, 0.0, 0.0);
+    // targetFinder->setUIPointColor(0.0, 0.0, 1.0);
+
+    return resultCode;
+}
+
+JNIEXPORT int JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitCloudReco(
+    JNIEnv *, jobject)
+{
+
+    // Get the image tracker:
+    QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+            trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
+
+    if (imageTracker == NULL)
+    {
+        LOG("Failed to deinit CloudReco as the ImageTracker was not initialized.");
+        return 0;
+    }
+
+    // Deinitialize Cloud Reco:
+    QCAR::TargetFinder* finder = imageTracker->getTargetFinder();
+    finder->deinit();
+
+    return 1;
+}
+
+JNIEXPORT void JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_enterScanningModeNative(
+    JNIEnv*, jobject)
+{
+    QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+            trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER));
+
+    assert(imageTracker != 0);
+
+    QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+    assert (targetFinder != 0);
+
+    // Start Cloud Reco
+    targetFinder->startRecognition();
+
+    // Clear all trackables created previously:
+    targetFinder->clearTrackables();
+
+    scanningMode = true;
+}
+
 
 #ifdef __cplusplus
 }

@@ -42,4 +42,9 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		mRenderer.setSurfaceView(mSurfaceView);
 		super.setRenderer(mRenderer);
 	}
+	
+	public void showStartScanButton()
+	{
+	    super.showStartScanButton();
+	}
 }
