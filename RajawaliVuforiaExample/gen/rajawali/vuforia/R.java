@@ -7,6 +7,6 @@
 package rajawali.vuforia;
 
 public final class R {
-	public static final class raw {
+	public static final class string {
 	}
 }

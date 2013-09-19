@@ -48,13 +48,12 @@ QCAR::Matrix44F projectionMatrix;
 
 //New global vars for Cloud Reco
 bool scanningMode = false;
-bool showStartScanButton = false;
 static const size_t CONTENT_MAX = 256;
 char lastTargetId[CONTENT_MAX];
 char targetMetadata[CONTENT_MAX];
 
-static const char* kAccessKey = "a75960aa97c3b72a76eb997f9e40d210d5e40bf2";
-static const char* kSecretKey = "aac883379f691a2550e80767ccd445ffbaa520ca";
+static const char* kAccessKey = NULL;
+static const char* kSecretKey = NULL;
 
 jobject activityObj;
 
@@ -128,7 +127,6 @@ class ImageTargets_UpdateCallback : public QCAR::UpdateCallback
     		                  targetFinder->stop();
 
     		                  scanningMode = false;
-    		                  showStartScanButton = true;
     		              }
     		          }
     		      }
@@ -253,21 +251,6 @@ JNIEXPORT void JNICALL
 JNIEXPORT void JNICALL
 Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object)
 {
-
-	//New code for Cloud Reco
-	if (showStartScanButton)
-	{
-	    jclass javaClass = env->GetObjectClass(activityObj);
-	    jmethodID method = env->GetMethodID(javaClass, "showStartScanButton", "()V");
-	    if (method == 0)
-	    {
-	        LOG("Function method() not found.");
-
-	    }else
-	    env->CallVoidMethod(activityObj, method);
-
-	    showStartScanButton = false;
-	}
 
 	//LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
 	jclass ownerClass = env->GetObjectClass(object);
@@ -680,7 +663,24 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_enterScanningModeNative(
     scanningMode = true;
 }
 
+JNIEXPORT bool JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_getScanningModeNative(
+    JNIEnv*, jobject)
+{
+	return scanningMode;
+}
 
+JNIEXPORT void JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_setCloudRecoDatabase(
+		JNIEnv* env, jobject, jstring AccessKey, jstring SecretKey)
+{
+	const jbyte* argvv =
+	(jbyte*)env->GetStringUTFChars(AccessKey, NULL);
+	kAccessKey = (char *)argvv;
+	argvv =
+	(jbyte*)env->GetStringUTFChars(SecretKey, NULL);
+	kSecretKey = (char *) argvv;
+}
 #ifdef __cplusplus
 }
 #endif

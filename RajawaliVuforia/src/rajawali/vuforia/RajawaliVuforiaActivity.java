@@ -95,27 +95,35 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
                 // Create dialog box for display error:
                 AlertDialog dialogError = new AlertDialog.Builder(
                         RajawaliVuforiaActivity.this).create();
-                dialogError.setButton(DialogInterface.BUTTON_POSITIVE,
-                        getString(R.string.button_OK),
-                        new DialogInterface.OnClickListener()
+ 
+                dialogError.setButton
+                (
+                    DialogInterface.BUTTON_POSITIVE,
+                    "Close",
+                    new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int which)
                         {
-                            public void onClick(DialogInterface dialog,
-                                    int which)
-                            {
-                                // Exiting application
-                                System.exit(1);
-                            }
-                        });
+                            System.exit(1);
+                        }
+                    }
+                );
 
-                // Show dialog box with error message:
-                String logMessage = "Failed to initialize CloudReco.";
 
-                if (mInitResult == INIT_ERROR_NO_NETWORK_CONNECTION)
-                    logMessage = "Failed to initialize CloudReco because "
-                            + "the device has no network connection.";
-                else if (mInitResult == INIT_ERROR_SERVICE_NOT_AVAILABLE)
-                    logMessage = "Failed to initialize CloudReco because "
-                            + "the service is not available.";
+                String logMessage;
+
+                if (mInitResult == QCAR.INIT_DEVICE_NOT_SUPPORTED)
+                {
+                    logMessage = "Failed to initialize QCAR because this " +
+                        "device is not supported.";
+                }
+                else
+                {
+                    logMessage = "Failed to initialize QCAR.";
+                }
+
+                RajLog.e("InitQCARTask::onPostExecute: " + logMessage +
+                                " Exiting.");
 
                 dialogError.setMessage(logMessage);
                 dialogError.show();
@@ -393,9 +401,11 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     protected native boolean autofocus();
     protected native boolean setFocusMode(int mode);
     public native int initCloudReco();
+    public native void setCloudRecoDatabase(String kAccessKey, String kSecretKey);
     public native void deinitCloudReco();
     public native void enterScanningModeNative();
     public native int initCloudRecoTask(); 
+    public native boolean getScanningModeNative(); 
 
     /** A helper for loading native libraries stored in "libs/armeabi*". */
     public static boolean loadLibrary(String nLibName)

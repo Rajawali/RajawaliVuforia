@@ -26,9 +26,11 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
-
+	private RajawaliVuforiaExampleActivity activity;
+	
 	public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
+		activity = (RajawaliVuforiaExampleActivity)context;
 	}
 
 	protected void initScene() {
@@ -153,5 +155,12 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mAndroid.setVisible(false);
 
 		super.onDrawFrame(glUnused);
+		
+		if (!activity.getScanningModeNative())
+		{
+			activity.showStartScanButton();
+		}
+
 	}
+
 }

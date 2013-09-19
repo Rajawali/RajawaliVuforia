@@ -15,6 +15,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setCloudRecoDatabase("a75960aa97c3b72a76eb997f9e40d210d5e40bf2", "aac883379f691a2550e80767ccd445ffbaa520ca");
 		startVuforia();
 	}
 
@@ -47,7 +48,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		mRenderer.setSurfaceView(mSurfaceView);
 		super.setRenderer(mRenderer);
 		
-	      //Add button for Cloud Reco:
+	    //Add button for Cloud Reco:
         mStartScanButton = new Button(this);
         mStartScanButton.setText("Start Scanning CloudReco");
          
