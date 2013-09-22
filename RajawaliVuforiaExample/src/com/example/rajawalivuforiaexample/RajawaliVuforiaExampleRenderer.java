@@ -18,6 +18,7 @@ import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
+import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
@@ -135,7 +136,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			mBob.setVisible(true);
 			mBob.setPosition(position);
 			mBob.setOrientation(orientation);
-			mBob.setScale(.5);
+			RajLog.d(activity.getMetadataNative());
 		}
 		if(trackableName.equals("stones"))
 		{

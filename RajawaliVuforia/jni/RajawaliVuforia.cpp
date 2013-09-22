@@ -681,6 +681,18 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_setCloudRecoDatabase(
 	(jbyte*)env->GetStringUTFChars(SecretKey, NULL);
 	kSecretKey = (char *) argvv;
 }
+
+JNIEXPORT jstring JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_getMetadataNative(
+    JNIEnv* env, jobject)
+{
+//	char *buf = (char*)malloc(CONTENT_MAX);
+//	strcpy(buf, targetMetadata);
+	jstring jstrBuf = env->NewStringUTF(targetMetadata);
+
+	return jstrBuf;
+}
+
 #ifdef __cplusplus
 }
 #endif

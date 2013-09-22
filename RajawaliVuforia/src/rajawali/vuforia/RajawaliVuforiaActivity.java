@@ -92,7 +92,8 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
              }
             else
             {
-                // Create dialog box for display error:
+                updateApplicationStatus(APPSTATUS_INITED);
+               // Create dialog box for display error:
                 AlertDialog dialogError = new AlertDialog.Builder(
                         RajawaliVuforiaActivity.this).create();
  
@@ -104,7 +105,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
                     {
                         public void onClick(DialogInterface dialog, int which)
                         {
-                            System.exit(1);
+  //                          System.exit(1);
                         }
                     }
                 );
@@ -119,7 +120,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
                 }
                 else
                 {
-                    logMessage = "Failed to initialize QCAR.";
+                    logMessage = "Failed to initialize CloudReco.";
                 }
 
                 RajLog.e("InitQCARTask::onPostExecute: " + logMessage +
@@ -406,6 +407,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     public native void enterScanningModeNative();
     public native int initCloudRecoTask(); 
     public native boolean getScanningModeNative(); 
+    public native String getMetadataNative(); 
 
     /** A helper for loading native libraries stored in "libs/armeabi*". */
     public static boolean loadLibrary(String nLibName)
