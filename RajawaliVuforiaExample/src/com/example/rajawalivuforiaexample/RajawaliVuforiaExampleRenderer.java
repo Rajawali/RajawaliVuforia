@@ -18,6 +18,7 @@ import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
+import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
@@ -26,9 +27,11 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
-
+	private RajawaliVuforiaExampleActivity activity;
+	
 	public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
+		activity = (RajawaliVuforiaExampleActivity)context;
 	}
 
 	protected void initScene() {
@@ -128,6 +131,13 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundImageMarker(String trackableName, Vector3 position,
 			Quaternion orientation) {
+		if(trackableName.equals("SamsungGalaxyS4"))
+		{
+			mBob.setVisible(true);
+			mBob.setPosition(position);
+			mBob.setOrientation(orientation);
+			RajLog.d(activity.getMetadataNative());
+		}
 		if(trackableName.equals("stones"))
 		{
 			mF22.setVisible(true);
@@ -146,5 +156,12 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mAndroid.setVisible(false);
 
 		super.onDrawFrame(glUnused);
+		
+		if (!activity.getScanningModeNative())
+		{
+			activity.showStartScanButton();
+		}
+
 	}
+
 }
