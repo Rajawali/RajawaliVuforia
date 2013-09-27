@@ -176,7 +176,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT void JNICALL
-Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object)
+Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object, jint frameBufferId, int frameBufferTextureId)
 {
     //LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
 	jclass ownerClass = env->GetObjectClass(object);
@@ -186,6 +186,9 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
 
     // Get the state from QCAR and mark the beginning of a rendering section
     QCAR::State state = QCAR::Renderer::getInstance().begin();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTextureId, 0);
 
     // Explicitly render the Video Background
     QCAR::Renderer::getInstance().drawVideoBackground();
@@ -222,6 +225,8 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
     	jmethodID noFrameMarkersFoundMethod = env->GetMethodID(ownerClass, "noFrameMarkersFound", "()V");
     	env->CallVoidMethod(object, noFrameMarkersFoundMethod);
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     QCAR::Renderer::getInstance().end();
 }

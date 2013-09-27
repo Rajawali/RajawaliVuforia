@@ -3,9 +3,13 @@ package rajawali.vuforia;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import rajawali.materials.Material;
+import rajawali.materials.textures.ATexture.TextureException;
 import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
+import rajawali.primitives.ScreenQuad;
 import rajawali.renderer.RajawaliRenderer;
+import rajawali.renderer.RenderTarget;
 import android.content.Context;
 
 import com.qualcomm.QCAR.QCAR;
@@ -13,12 +17,15 @@ import com.qualcomm.QCAR.QCAR;
 public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	private Vector3 mPosition;
 	private Quaternion mOrientation;
+	protected ScreenQuad mBackgroundQuad;
+	protected RenderTarget mBackgroundRenderTarget;
 	private double[] mModelViewMatrix;
 	private int mI = 0;
 	
 	public native void initRendering();
 	public native void updateRendering(int width, int height);
-	public native void renderFrame();
+	public native void renderFrame(int frameBufferId, int frameBufferTextureId);
+	public native void drawVideoBackground();
 	public native float getFOV();
 	public native int getVideoWidth();
 	public native int getVideoHeight();
@@ -27,7 +34,6 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		super(context);
 		mPosition = new Vector3();
 		mOrientation = new Quaternion();
-		getCurrentScene().alwaysClearColorBuffer(false);
 		getCurrentCamera().setNearPlane(10);
 		getCurrentCamera().setFarPlane(2500);
 		mModelViewMatrix = new double[16];
@@ -45,6 +51,20 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		QCAR.onSurfaceChanged(width, height);
 		getCurrentCamera().setProjectionMatrix(getFOV(), getVideoWidth(),
 				getVideoHeight());
+		if(mBackgroundRenderTarget == null) {
+			mBackgroundRenderTarget = new RenderTarget(getVideoWidth(), getVideoHeight());
+			addRenderTarget(mBackgroundRenderTarget);
+			Material material = new Material();
+			try {
+				material.addTexture(mBackgroundRenderTarget.getTexture());
+			} catch (TextureException e) {
+				e.printStackTrace();
+			}
+			
+			mBackgroundQuad = new ScreenQuad();
+			mBackgroundQuad.setMaterial(material);
+			getCurrentScene().addChildAt(mBackgroundQuad, 0);
+		}
 	}
 
 	public void foundFrameMarker(int markerId, float[] modelViewMatrix) {
@@ -74,8 +94,13 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	abstract public void noFrameMarkersFound();
 
 	public void onDrawFrame(GL10 glUnused) {
-		renderFrame();
 		super.onDrawFrame(glUnused);
+	}
+	
+	@Override
+	protected void onRender(final double deltaTime) {
+		renderFrame(mBackgroundRenderTarget.getFrameBufferHandle(), mBackgroundRenderTarget.getTexture().getTextureId());
+		super.onRender(deltaTime);
 	}
 	
 	private void copyFloatToDoubleMatrix(float[] src, double[] dst)

@@ -4,7 +4,7 @@
  * aapt tool from the resource data it found.  It
  * should not be modified by hand.
  */
-package rajawali.vuforia;
+package rajawali.framework;
 
 public final class R {
 	public static final class raw {

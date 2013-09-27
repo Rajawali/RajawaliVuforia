@@ -5,7 +5,7 @@ import rajawali.vuforia.RajawaliVuforiaActivity;
 import android.os.Bundle;
 
 public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
-	private RajawaliVuforiaExampleRenderer mRenderer;
+	private RajawaliVuforiaVRGlassesExampleRenderer mRenderer;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		
 		createImageMarker("StonesAndChips.xml");
 		
-		mRenderer = new RajawaliVuforiaExampleRenderer(this);
+		mRenderer = new RajawaliVuforiaVRGlassesExampleRenderer(this);
 		mRenderer.setSurfaceView(mSurfaceView);
 		super.setRenderer(mRenderer);
 	}

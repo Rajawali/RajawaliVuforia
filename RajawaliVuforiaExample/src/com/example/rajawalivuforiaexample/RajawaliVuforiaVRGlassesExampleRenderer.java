@@ -18,20 +18,21 @@ import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
-import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
-public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
+public class RajawaliVuforiaVRGlassesExampleRenderer extends
+		RajawaliVuforiaSideBySideRenderer {
 	private DirectionalLight mLight;
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
 
-	public RajawaliVuforiaExampleRenderer(Context context) {
+	public RajawaliVuforiaVRGlassesExampleRenderer(Context context) {
 		super(context);
 	}
 
-	protected void initScene() {
+	@Override
+	public void initScene() {
 		mLight = new DirectionalLight(.1f, 0, -1.0f);
 		mLight.setColor(1.0f, 1.0f, 0.8f);
 		mLight.setPower(1);
@@ -109,6 +110,8 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		super.initScene();
 	}
 
 	@Override
@@ -142,12 +145,12 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	
 	@Override
 	public void onDrawFrame(GL10 glUnused) {
-		
 		mBob.setVisible(false);
 		mF22.setVisible(false);
 		mAndroid.setVisible(false);
 		super.onDrawFrame(glUnused);
 	}
+
 
 	@Override
 	protected void onRender(final double deltaTime) {
