@@ -9,10 +9,7 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
-import android.widget.Button;
 
 import com.qualcomm.QCAR.QCAR;
 
@@ -52,6 +49,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     private int mScreenHeight = 0;
     private int mAppStatus = APPSTATUS_UNINITED;
     private int mFocusMode;
+    private int mScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
     private InitQCARTask mInitQCARTask;
     private Object mShutdownLock = new Object();
     private InitCloudRecoTask mInitCloudRecoTask;
@@ -364,16 +362,25 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
 	
     private void initApplication()
     {
-        int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        setRequestedOrientation(screenOrientation);
+        setRequestedOrientation(mScreenOrientation);
         setActivityPortraitMode(
-            screenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         storeScreenDimensions();
 
         getWindow().setFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+    
+    public void setScreenOrientation(final int screenOrientation)
+    {
+    	mScreenOrientation = screenOrientation;
+    }
+    
+    public int getScreenOrientation()
+    {
+    	return mScreenOrientation;
     }
     
     protected void setupTracker()

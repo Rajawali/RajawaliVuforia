@@ -2,6 +2,7 @@ package com.example.rajawalivuforiaexample;
 
 import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaActivity;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -15,6 +16,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setCloudRecoDatabase("a75960aa97c3b72a76eb997f9e40d210d5e40bf2", "aac883379f691a2550e80767ccd445ffbaa520ca");
 		startVuforia();
 	}

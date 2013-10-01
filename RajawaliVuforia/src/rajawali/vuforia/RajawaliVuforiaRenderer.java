@@ -3,6 +3,8 @@ package rajawali.vuforia;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import rajawali.math.Matrix;
+import rajawali.math.Matrix4;
 import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.renderer.RajawaliRenderer;
@@ -14,6 +16,7 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	private Vector3 mPosition;
 	private Quaternion mOrientation;
 	private double[] mModelViewMatrix;
+	private Matrix4 mMVMatrix = new Matrix4();
 	private int mI = 0;
 	
 	public native void initRendering();
@@ -48,25 +51,31 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	}
 
 	public void foundFrameMarker(int markerId, float[] modelViewMatrix) {
-		mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
-				-modelViewMatrix[14]);
-		copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
-		mOrientation.fromRotationMatrix(mModelViewMatrix);
-		mOrientation.y = -mOrientation.y;
-		mOrientation.z = -mOrientation.z;
-		
-		foundFrameMarker(markerId, mPosition, mOrientation);
+		synchronized (this) {
+			mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[14],
+					-modelViewMatrix[13]);
+			copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);	
+			mMVMatrix.setAll(mModelViewMatrix);
+//			mOrientation.fromRotationMatrix(mModelViewMatrix);
+			mOrientation.fromMatrix(mMVMatrix);
+			mOrientation.y = -mOrientation.y;
+			mOrientation.z = -mOrientation.z;
+			
+			foundFrameMarker(markerId, mPosition, mOrientation);
+		}
 	}
 	
 	public void foundImageMarker(String trackableName, float[] modelViewMatrix) {
-		mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
-				-modelViewMatrix[14]);
-		copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
-		mOrientation.fromRotationMatrix(mModelViewMatrix);
-		mOrientation.y = -mOrientation.y;
-		mOrientation.z = -mOrientation.z;
-		
-		foundImageMarker(trackableName, mPosition, mOrientation);
+		synchronized (this) {
+			mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
+					-modelViewMatrix[14]);
+			copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
+			mOrientation.fromRotationMatrix(mModelViewMatrix);
+			mOrientation.y = -mOrientation.y;
+			mOrientation.z = -mOrientation.z;
+			
+			foundImageMarker(trackableName, mPosition, mOrientation);
+		}
 	}
 	
 	abstract protected void foundFrameMarker(int markerId, Vector3 position, Quaternion orientation);
