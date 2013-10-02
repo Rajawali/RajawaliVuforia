@@ -13,7 +13,7 @@ import android.view.WindowManager;
 
 import com.qualcomm.QCAR.QCAR;
 
-public class RajawaliVuforiaActivity extends RajawaliActivity {
+public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
 	protected static int TRACKER_TYPE_IMAGE = 0;
 	protected static int TRACKER_TYPE_MARKER = 1;
 		
@@ -353,6 +353,7 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
                     setFocusMode(mFocusMode);
                 }
 
+                initRajawali();
                 break;
 
             default:
@@ -391,8 +392,11 @@ public class RajawaliVuforiaActivity extends RajawaliActivity {
     protected void initApplicationAR()
     {
         initApplicationNative(mScreenWidth, mScreenHeight);
-        
-        createSurfaceView();
+    }
+    
+    protected void initRajawali()
+    {
+    	createSurfaceView();
     }
   
     protected native void initApplicationNative(int width, int height);

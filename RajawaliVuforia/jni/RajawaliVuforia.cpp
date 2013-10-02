@@ -252,11 +252,11 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTextureId, 0);
-
 	// Get the state from QCAR and mark the beginning of a rendering section
 	QCAR::State state = QCAR::Renderer::getInstance().begin();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTextureId, 0);
 
 	// Explicitly render the Video Background
 	QCAR::Renderer::getInstance().drawVideoBackground();
@@ -297,7 +297,6 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     QCAR::Renderer::getInstance().end();
-	QCAR::Renderer::getInstance().end();
 }
 
 // Initialize State Variables for Cloud Reco
@@ -320,7 +319,7 @@ void configureVideoBackground() {
 	config.mPosition.data[1] = 0.0f;
 
 	if (isActivityInPortraitMode) {
-		//LOG("configureVideoBackground PORTRAIT");
+		LOG("configureVideoBackground PORTRAIT");
 		config.mSize.data[0] = videoMode.mHeight
 				* (screenHeight / (float) videoMode.mWidth);
 		config.mSize.data[1] = screenHeight;
@@ -333,7 +332,7 @@ void configureVideoBackground() {
 					* (videoMode.mWidth / (float) videoMode.mHeight);
 		}
 	} else {
-		//LOG("configureVideoBackground LANDSCAPE");
+		LOG("configureVideoBackground LANDSCAPE");
 		config.mSize.data[0] = screenWidth;
 		config.mSize.data[1] = videoMode.mHeight
 				* (screenWidth / (float) videoMode.mWidth);

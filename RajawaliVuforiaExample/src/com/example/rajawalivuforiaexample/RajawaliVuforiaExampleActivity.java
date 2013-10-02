@@ -16,7 +16,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		setScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setCloudRecoDatabase("a75960aa97c3b72a76eb997f9e40d210d5e40bf2", "aac883379f691a2550e80767ccd445ffbaa520ca");
 		startVuforia();
 	}
@@ -45,7 +45,21 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		createFrameMarker(2, "Marker2", 50, 50);
 		
 		createImageMarker("StonesAndChips.xml");
-		
+	}
+	
+    public void showStartScanButton()
+    {
+        this.runOnUiThread(new Runnable() {
+                public void run() {
+                    if  (mStartScanButton != null)
+                        mStartScanButton.setVisibility(View.VISIBLE);
+                 }
+         });
+    }
+
+	@Override
+	protected void initRajawali() {
+		super.initRajawali();
 		mRenderer = new RajawaliVuforiaExampleRenderer(this);
 		mRenderer.setSurfaceView(mSurfaceView);
 		super.setRenderer(mRenderer);
@@ -63,17 +77,6 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
         
         mUILayout = this;
         mUILayout.addContentView(mStartScanButton, 
-            new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-     
-	}
-	
-    public void showStartScanButton()
-    {
-        this.runOnUiThread(new Runnable() {
-                public void run() {
-                    if  (mStartScanButton != null)
-                        mStartScanButton.setVisibility(View.VISIBLE);
-                 }
-         });
-    }    
+            new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
+	}    
 }

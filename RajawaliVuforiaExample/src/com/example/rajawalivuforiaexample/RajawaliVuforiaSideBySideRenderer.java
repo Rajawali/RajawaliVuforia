@@ -7,7 +7,6 @@ import rajawali.math.vector.Vector3;
 import rajawali.primitives.ScreenQuad;
 import rajawali.renderer.RenderTarget;
 import rajawali.scene.RajawaliScene;
-import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
@@ -94,6 +93,7 @@ public class RajawaliVuforiaSideBySideRenderer extends RajawaliVuforiaRenderer {
 	
 	@Override
 	protected void onRender(final double deltaTime) {
+		/*
 		RajLog.i("____ RENDER SUPER");
 		//
 		// -- Renders the camera view into a texture
@@ -137,6 +137,7 @@ public class RajawaliVuforiaSideBySideRenderer extends RajawaliVuforiaRenderer {
 		render(deltaTime);
 		
 		switchScene(mUserScene);
+		*/
 	}
 
 	public void setPupilDistance(double pupilDistance)

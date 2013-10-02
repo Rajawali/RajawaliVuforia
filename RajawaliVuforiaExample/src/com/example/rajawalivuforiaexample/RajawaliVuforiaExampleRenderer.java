@@ -108,7 +108,6 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			androidMaterial.enableLighting(true);
 			androidMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
 			androidMaterial.setSpecularMethod(new SpecularMethod.Phong());
-			androidMaterial.setColorInfluence(0);
 			mAndroid.setColor(0x00dd00);
 			mAndroid.setMaterial(androidMaterial);
 		} catch (Exception e) {
@@ -119,6 +118,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundFrameMarker(int markerId, Vector3 position,
 			Quaternion orientation) {
+		
 		if (markerId == 0) {
 			mBob.setVisible(true);
 			mBob.setPosition(position);
@@ -163,7 +163,5 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		{
 			activity.showStartScanButton();
 		}
-
 	}
-
 }
