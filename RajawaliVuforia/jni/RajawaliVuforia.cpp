@@ -271,6 +271,8 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
 		const QCAR::Trackable& trackable = trackableResult->getTrackable();
 		QCAR::Matrix44F modelViewMatrix =
 		QCAR::Tool::convertPose2GLMatrix(trackableResult->getPose());
+		if(isActivityInPortraitMode)
+			SampleUtils::rotatePoseMatrix(90.0f, 0, 1.0f, 0, &modelViewMatrix.data[0]);
 		SampleUtils::rotatePoseMatrix(-90.0f, 1.0f, 0, 0, &modelViewMatrix.data[0]);
 
 		if(trackable.getType() == QCAR::Trackable::MARKER)

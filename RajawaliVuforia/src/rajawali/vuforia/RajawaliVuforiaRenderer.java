@@ -5,14 +5,13 @@ import javax.microedition.khronos.opengles.GL10;
 
 import rajawali.materials.Material;
 import rajawali.materials.textures.ATexture.TextureException;
-import rajawali.math.Matrix4;
 import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.primitives.ScreenQuad;
 import rajawali.renderer.RajawaliRenderer;
 import rajawali.renderer.RenderTarget;
-import rajawali.util.RajLog;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 
 import com.qualcomm.QCAR.QCAR;
 
@@ -22,8 +21,8 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	protected ScreenQuad mBackgroundQuad;
 	protected RenderTarget mBackgroundRenderTarget;
 	private double[] mModelViewMatrix;
-	private Matrix4 mMVMatrix = new Matrix4();
 	private int mI = 0;
+	private RajawaliVuforiaActivity mActivity;
 	
 	public native void initRendering();
 	public native void updateRendering(int width, int height);
@@ -35,6 +34,7 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 
 	public RajawaliVuforiaRenderer(Context context) {
 		super(context);
+		mActivity = (RajawaliVuforiaActivity)context;
 		mPosition = new Vector3();
 		mOrientation = new Quaternion();
 		getCurrentCamera().setNearPlane(10);
@@ -73,30 +73,39 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 
 	public void foundFrameMarker(int markerId, float[] modelViewMatrix) {
 		synchronized (this) {
-			mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[14],
-					-modelViewMatrix[13]);
-			copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);	
-			//mMVMatrix.setAll(mModelViewMatrix);
-			mOrientation.fromRotationMatrix(mModelViewMatrix);
-//			mOrientation.fromMatrix(mMVMatrix);
-			mOrientation.y = -mOrientation.y;
-			mOrientation.z = -mOrientation.z;
+			transformPositionAndOrientation(modelViewMatrix);
 			
 			foundFrameMarker(markerId, mPosition, mOrientation);
 		}
 	}
 	
-	public void foundImageMarker(String trackableName, float[] modelViewMatrix) {
-		synchronized (this) {
+	private void transformPositionAndOrientation(float[] modelViewMatrix) {
+		mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
+				-modelViewMatrix[14]);
+		copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
+		mOrientation.fromRotationMatrix(mModelViewMatrix);
+		
+		if(mActivity.getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+		{
 			mPosition.setAll(modelViewMatrix[12], -modelViewMatrix[13],
 					-modelViewMatrix[14]);
-			copyFloatToDoubleMatrix(modelViewMatrix, mModelViewMatrix);		
-			//mMVMatrix.setAll(mModelViewMatrix);
-			mOrientation.fromRotationMatrix(mModelViewMatrix);
-//			mOrientation.fromMatrix(mMVMatrix);
 			mOrientation.y = -mOrientation.y;
 			mOrientation.z = -mOrientation.z;
-			
+		}
+		else
+		{
+			mPosition.setAll(-modelViewMatrix[13], -modelViewMatrix[12],
+					-modelViewMatrix[14]);
+			double orX = mOrientation.x;
+			mOrientation.x = -mOrientation.y;
+			mOrientation.y = -orX;
+			mOrientation.z = -mOrientation.z;
+		}
+	}
+	
+	public void foundImageMarker(String trackableName, float[] modelViewMatrix) {
+		synchronized (this) {
+			transformPositionAndOrientation(modelViewMatrix);
 			foundImageMarker(trackableName, mPosition, mOrientation);
 		}
 	}
