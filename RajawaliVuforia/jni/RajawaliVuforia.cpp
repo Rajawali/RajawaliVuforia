@@ -243,7 +243,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitTracker(JNIEnv *, jobject)
 }
 
 JNIEXPORT void JNICALL
-Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object)
+Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject object, jint frameBufferId, int frameBufferTextureId)
 {
 
 	//LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
@@ -251,6 +251,9 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
 
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTextureId, 0);
 
 	// Get the state from QCAR and mark the beginning of a rendering section
 	QCAR::State state = QCAR::Renderer::getInstance().begin();
@@ -291,6 +294,9 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env, jobject o
 		env->CallVoidMethod(object, noFrameMarkersFoundMethod);
 	}
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    QCAR::Renderer::getInstance().end();
 	QCAR::Renderer::getInstance().end();
 }
 

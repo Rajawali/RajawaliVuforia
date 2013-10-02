@@ -18,23 +18,21 @@ import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
-import rajawali.util.RajLog;
-import rajawali.vuforia.RajawaliVuforiaRenderer;
 import android.content.Context;
 
-public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
+public class RajawaliVuforiaVRGlassesExampleRenderer extends
+		RajawaliVuforiaSideBySideRenderer {
 	private DirectionalLight mLight;
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
-	private RajawaliVuforiaExampleActivity activity;
-	
-	public RajawaliVuforiaExampleRenderer(Context context) {
+
+	public RajawaliVuforiaVRGlassesExampleRenderer(Context context) {
 		super(context);
-		activity = (RajawaliVuforiaExampleActivity)context;
 	}
 
-	protected void initScene() {
+	@Override
+	public void initScene() {
 		mLight = new DirectionalLight(.1f, 0, -1.0f);
 		mLight.setColor(1.0f, 1.0f, 0.8f);
 		mLight.setPower(1);
@@ -85,7 +83,6 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			f22Material.enableLighting(true);
 			f22Material.setDiffuseMethod(new DiffuseMethod.Lambert());
 			f22Material.addTexture(new Texture("f22Texture", R.drawable.f22));
-			f22Material.setColorInfluence(0);
 			
 			mF22.setMaterial(f22Material);
 			
@@ -108,12 +105,13 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			androidMaterial.enableLighting(true);
 			androidMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
 			androidMaterial.setSpecularMethod(new SpecularMethod.Phong());
-			androidMaterial.setColorInfluence(0);
 			mAndroid.setColor(0x00dd00);
 			mAndroid.setMaterial(androidMaterial);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		super.initScene();
 	}
 
 	@Override
@@ -133,13 +131,6 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundImageMarker(String trackableName, Vector3 position,
 			Quaternion orientation) {
-		if(trackableName.equals("SamsungGalaxyS4"))
-		{
-			mBob.setVisible(true);
-			mBob.setPosition(position);
-			mBob.setOrientation(orientation);
-			RajLog.d(activity.getMetadataNative());
-		}
 		if(trackableName.equals("stones"))
 		{
 			mF22.setVisible(true);
@@ -151,19 +142,18 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	public void noFrameMarkersFound() {
 	}
-
+	
+	@Override
 	public void onDrawFrame(GL10 glUnused) {
 		mBob.setVisible(false);
 		mF22.setVisible(false);
 		mAndroid.setVisible(false);
-
 		super.onDrawFrame(glUnused);
-		
-		if (!activity.getScanningModeNative())
-		{
-			activity.showStartScanButton();
-		}
-
 	}
 
+
+	@Override
+	protected void onRender(final double deltaTime) {
+		super.onRender(deltaTime);
+	}
 }
