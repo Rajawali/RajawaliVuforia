@@ -293,7 +293,8 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env,
 			env->CallVoidMethod(object, foundFrameMarkerMethod,
 					(jint) trackable.getId(), modelViewMatrixOut);
 		} else if (trackable.getType() == QCAR::Trackable::CYLINDER_TARGET
-				|| trackable.getType() == QCAR::Trackable::IMAGE_TARGET) {
+				|| trackable.getType() == QCAR::Trackable::IMAGE_TARGET
+				|| trackable.getType() == QCAR::Trackable::MULTI_TARGET) {
 			jmethodID foundImageMarkerMethod = env->GetMethodID(ownerClass,
 					"foundImageMarker", "(Ljava/lang/String;[F)V");
 			env->SetFloatArrayRegion(modelViewMatrixOut, 0, 16,

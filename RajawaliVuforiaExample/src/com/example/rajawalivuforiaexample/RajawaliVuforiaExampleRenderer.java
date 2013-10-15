@@ -28,7 +28,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	private Object3D mF22;
 	private Object3D mAndroid;
 	private RajawaliVuforiaExampleActivity activity;
-	
+
 	public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
 		activity = (RajawaliVuforiaExampleActivity)context;
@@ -147,7 +147,8 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			mF22.setPosition(position);
 			mF22.setOrientation(orientation);
 		}
-		// -- also handle cylinder targets here 
+		// -- also handle cylinder targets here
+		// -- also handle multi-targets here
 	}
 
 	@Override
@@ -158,7 +159,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mBob.setVisible(false);
 		mF22.setVisible(false);
 		mAndroid.setVisible(false);
-
+		
 		super.onDrawFrame(glUnused);
 		
 		if (!activity.getScanningModeNative())
