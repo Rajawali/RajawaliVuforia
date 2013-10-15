@@ -10,6 +10,7 @@ import rajawali.math.vector.Vector3;
 import rajawali.primitives.ScreenQuad;
 import rajawali.renderer.RajawaliRenderer;
 import rajawali.renderer.RenderTarget;
+import rajawali.util.RajLog;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 
@@ -55,7 +56,8 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		getCurrentCamera().setProjectionMatrix(getFOV(), getVideoWidth(),
 				getVideoHeight());
 		if(mBackgroundRenderTarget == null) {
-			mBackgroundRenderTarget = new RenderTarget(getVideoWidth(), getVideoHeight());
+			mBackgroundRenderTarget = new RenderTarget(width, height);
+			
 			addRenderTarget(mBackgroundRenderTarget);
 			Material material = new Material();
 			material.setColorInfluence(0);
@@ -66,6 +68,10 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 			}
 
 			mBackgroundQuad = new ScreenQuad();
+			if(mActivity.getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+				mBackgroundQuad.setScaleY((float)height / (float)getVideoHeight());
+			else
+				mBackgroundQuad.setScaleX((float)width / (float)getVideoWidth());
 			mBackgroundQuad.setMaterial(material);
 			getCurrentScene().addChildAt(mBackgroundQuad, 0);
 		}

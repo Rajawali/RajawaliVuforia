@@ -40,7 +40,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mLight.setPower(1);
 		
 		getCurrentScene().addLight(mLight);
-
+		
 		try {
 			//
 			// -- Load Bob (model by Katsbits
@@ -113,6 +113,8 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		super.initScene();
 	}
 
 	@Override
