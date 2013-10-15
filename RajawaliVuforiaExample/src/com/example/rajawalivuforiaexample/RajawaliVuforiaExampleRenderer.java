@@ -133,6 +133,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundImageMarker(String trackableName, Vector3 position,
 			Quaternion orientation) {
+		RajLog.i("trackableName: " + trackableName);
 		if(trackableName.equals("SamsungGalaxyS4"))
 		{
 			mBob.setVisible(true);
@@ -146,6 +147,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			mF22.setPosition(position);
 			mF22.setOrientation(orientation);
 		}
+		// -- also handle cylinder targets here 
 	}
 
 	@Override

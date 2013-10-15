@@ -45,6 +45,8 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		createFrameMarker(2, "Marker2", 50, 50);
 		
 		createImageMarker("StonesAndChips.xml");
+		// -- this is how you add a cylinder target:
+		// createImageMarker("MyCylinderTarget.xml");
 	}
 	
     public void showStartScanButton()

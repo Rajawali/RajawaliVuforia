@@ -19,18 +19,13 @@
 #include <stdio.h>
 #include <android/log.h>
 
-// Utility for logging:
-#define LOG_TAG    "QCAR"
+#define LOG_TAG    "Rajawali"
 #define LOG(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 /// A utility class used by the QCAR SDK samples.
-class SampleUtils
+class Utils
 {
 public:
-
-    /// Prints a 4x4 matrix.
-    static void printMatrix(const float* matrix);
-
     /// Prints GL error information.
     static void checkGlError(const char* operation);
     
@@ -54,13 +49,6 @@ public:
     static void multiplyMatrix(float *matrixA, float *matrixB, 
         float *matrixC);
     
-    /// Initialize a shader.
-    static unsigned int initShader(unsigned int shaderType, 
-        const char* source);
-    
-    /// Create a shader program.
-    static unsigned int createProgramFromBuffer(const char* vertexShaderBuffer,
-        const char* fragmentShaderBuffer);
 };
 
 #endif // _QCAR_SAMPLEUTILS_H_

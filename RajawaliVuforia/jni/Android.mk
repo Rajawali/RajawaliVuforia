@@ -76,7 +76,7 @@ LOCAL_SHARED_LIBRARIES := QCAR-prebuilt
 # compute dependencies automatically for you, just list the source files
 # that will be passed directly to a compiler.
 
-LOCAL_SRC_FILES := RajawaliVuforia.cpp SampleUtils.cpp
+LOCAL_SRC_FILES := RajawaliVuforia.cpp Utils.cpp
 
 # By default, ARM target binaries will be generated in 'thumb' mode, where
 # each instruction is 16-bit wide. You can set this variable to 'arm' to
