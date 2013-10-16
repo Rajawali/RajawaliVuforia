@@ -5,6 +5,13 @@
 This project integrates the (Rajawali 3D framework)[https://github.com/MasDennis/Rajawali] and the Vuforia Augmented Reality SDK.
 It is currently using Vuforia 2.0.31.
 
+Features:
+* Frame Markers
+* Image Targets
+* Cloud Recognition Targets
+* Cylinder Targets
+* Multi-Targets
+
 [http://www.youtube.com/watch?v=rjLa4K9Ffuo](http://www.youtube.com/watch?v=rjLa4K9Ffuo)
 
 ## Setup
@@ -22,4 +29,6 @@ It is currently using Vuforia 2.0.31.
 ![Rajawali + Vuforia](http://www.rozengain.com/files/rajawali/rajawali-vuforia-005.jpg)
 ![Rajawali + Vuforia](http://www.rozengain.com/files/rajawali/rajawali-vuforia-006.jpg)
 ![Rajawali + Vuforia](http://www.rozengain.com/files/rajawali/rajawali-vuforia-007.jpg)
+![Rajawali + Vuforia, Cylinder Target](http://www.rozengain.com/files/RajawaliWiki/rajawali-cylinder-target.png)
+![Rajawali + Vuforia, Multi Target](http://www.rozengain.com/files/RajawaliWiki/rajawali-vuforia-multi-targets.png)
 

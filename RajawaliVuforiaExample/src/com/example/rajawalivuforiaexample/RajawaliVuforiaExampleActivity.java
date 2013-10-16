@@ -17,6 +17,7 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		useCloudRecognition(true);
 		setCloudRecoDatabase("a75960aa97c3b72a76eb997f9e40d210d5e40bf2", "aac883379f691a2550e80767ccd445ffbaa520ca");
 		startVuforia();
 	}

@@ -52,6 +52,7 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     private int mScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
     private InitQCARTask mInitQCARTask;
     private Object mShutdownLock = new Object();
+    private boolean mUseCloudRecognition = false;
     private InitCloudRecoTask mInitCloudRecoTask;
     
 	static
@@ -318,15 +319,22 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
                 break;
                 
             case APPSTATUS_INIT_CLOUDRECO:
-                try
-                {
-                    mInitCloudRecoTask = new InitCloudRecoTask();
-                    mInitCloudRecoTask.execute();
-                }
-                catch (Exception e)
-                {
-                    RajLog.e("Failed to initialize CloudReco");
-                }
+            	if(mUseCloudRecognition)
+            	{
+	                try
+	                {
+	                    mInitCloudRecoTask = new InitCloudRecoTask();
+	                    mInitCloudRecoTask.execute();
+	                }
+	                catch (Exception e)
+	                {
+	                    RajLog.e("Failed to initialize CloudReco");
+	                }
+            	}
+            	else
+            	{
+            		updateApplicationStatus(APPSTATUS_INITED);
+            	}
                 break;
                 
             case APPSTATUS_INIT_APP_AR:
@@ -397,6 +405,11 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     protected void initRajawali()
     {
     	createSurfaceView();
+    }
+    
+    protected void useCloudRecognition(boolean value)
+    {
+    	mUseCloudRecognition = value;
     }
   
     protected native void initApplicationNative(int width, int height);

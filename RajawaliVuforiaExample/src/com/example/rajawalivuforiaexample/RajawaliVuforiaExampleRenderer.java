@@ -113,8 +113,6 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		super.initScene();
 	}
 
 	@Override
@@ -135,7 +133,6 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	@Override
 	protected void foundImageMarker(String trackableName, Vector3 position,
 			Quaternion orientation) {
-		RajLog.i("trackableName: " + trackableName);
 		if(trackableName.equals("SamsungGalaxyS4"))
 		{
 			mBob.setVisible(true);
