@@ -79,7 +79,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 
 			mF22 = new Object3D(serializedObj);
 			mF22.setScale(30);
-			addChild(mF22);
+			getCurrentScene().addChild(mF22);
 			
 			Material f22Material = new Material();
 			f22Material.enableLighting(true);
@@ -102,7 +102,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			
 			mAndroid = new Object3D(serializedObj);
 			mAndroid.setScale(14);
-			addChild(mAndroid);
+			getCurrentScene().addChild(mAndroid);
 			
 			Material androidMaterial = new Material();
 			androidMaterial.enableLighting(true);

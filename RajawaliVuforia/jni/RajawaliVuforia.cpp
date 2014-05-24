@@ -26,6 +26,8 @@
 #include <QCAR/TargetFinder.h>
 #include <QCAR/Tracker.h>
 #include <QCAR/ImageTarget.h>
+#include <QCAR/CylinderTarget.h>
+#include <QCAR/MultiTarget.h>
 
 #include "Utils.h"
 
@@ -63,7 +65,7 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 					QCAR::TrackerManager::getInstance();
 			QCAR::ImageTracker* imageTracker =
 					static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-							QCAR::Tracker::IMAGE_TRACKER));
+							QCAR::ImageTracker::getClassType()));
 			if (imageTracker == 0) {
 				LOG("Failed to activate data set.");
 				return;
@@ -77,7 +79,7 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 					QCAR::TrackerManager::getInstance();
 			QCAR::ImageTracker* imageTracker =
 					static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-							QCAR::Tracker::IMAGE_TRACKER));
+							QCAR::ImageTracker::getClassType()));
 
 			// Get the target finder:
 			QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
@@ -152,7 +154,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_initTracker(JNIEnv *env,
 		QCAR::TrackerManager& trackerManager =
 				QCAR::TrackerManager::getInstance();
 		QCAR::Tracker* tracker = trackerManager.initTracker(
-				QCAR::Tracker::IMAGE_TRACKER);
+				QCAR::ImageTracker::getClassType());
 		if (tracker == NULL) {
 			LOG("Failed to initialize ImageTracker.");
 			return 0;
@@ -161,7 +163,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_initTracker(JNIEnv *env,
 		LOG("Successfully initialized ImageTracker.");
 	} else if (type == 1) {
 		QCAR::Tracker* trackerBase = trackerManager.initTracker(
-				QCAR::Tracker::MARKER_TRACKER);
+				QCAR::MarkerTracker::getClassType());
 		QCAR::MarkerTracker* markerTracker =
 				static_cast<QCAR::MarkerTracker*>(trackerBase);
 		if (markerTracker == NULL) {
@@ -181,7 +183,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_createFrameMarker(JNIEnv* env,
 		jfloat height) {
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::Tracker* trackerBase = trackerManager.getTracker(
-			QCAR::Tracker::MARKER_TRACKER);
+			QCAR::MarkerTracker::getClassType());
 
 	if (trackerBase != 0) {
 		QCAR::MarkerTracker* markerTracker =
@@ -204,7 +206,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_createImageMarker(JNIEnv* env,
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 
 	if (imageTracker == NULL) {
 		LOG("Failed to load tracking data set because the ImageTracker has not"
@@ -244,10 +246,10 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitTracker(JNIEnv *, jobject) {
 
 	// Deinit the marker tracker, this will destroy all created frame markers:
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
-	if (trackerManager.getTracker(QCAR::Tracker::MARKER_TRACKER) != NULL)
-		trackerManager.deinitTracker(QCAR::Tracker::MARKER_TRACKER);
-	if (trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER) != NULL)
-		trackerManager.deinitTracker(QCAR::Tracker::IMAGE_TRACKER);
+	if (trackerManager.getTracker(QCAR::MarkerTracker::getClassType()) != NULL)
+		trackerManager.deinitTracker(QCAR::MarkerTracker::getClassType());
+	if (trackerManager.getTracker(QCAR::ImageTracker::getClassType()) != NULL)
+		trackerManager.deinitTracker(QCAR::ImageTracker::getClassType());
 }
 
 JNIEXPORT void JNICALL
@@ -285,16 +287,16 @@ Java_rajawali_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env,
 					&modelViewMatrix.data[0]);
 		Utils::rotatePoseMatrix(-90.0f, 1.0f, 0, 0, &modelViewMatrix.data[0]);
 
-		if (trackable.getType() == QCAR::Trackable::MARKER) {
+		if (trackable.isOfType(QCAR::Marker::getClassType())) {
 			jmethodID foundFrameMarkerMethod = env->GetMethodID(ownerClass,
 					"foundFrameMarker", "(I[F)V");
 			env->SetFloatArrayRegion(modelViewMatrixOut, 0, 16,
 					modelViewMatrix.data);
 			env->CallVoidMethod(object, foundFrameMarkerMethod,
 					(jint) trackable.getId(), modelViewMatrixOut);
-		} else if (trackable.getType() == QCAR::Trackable::CYLINDER_TARGET
-				|| trackable.getType() == QCAR::Trackable::IMAGE_TARGET
-				|| trackable.getType() == QCAR::Trackable::MULTI_TARGET) {
+		} else if (trackable.isOfType(QCAR::CylinderTarget::getClassType())
+				|| trackable.isOfType(QCAR::ImageTarget::getClassType())
+				|| trackable.isOfType(QCAR::MultiTarget::getClassType())) {
 			jmethodID foundImageMarkerMethod = env->GetMethodID(ownerClass,
 					"foundImageMarker", "(Ljava/lang/String;[F)V");
 			env->SetFloatArrayRegion(modelViewMatrixOut, 0, 16,
@@ -422,13 +424,13 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_startCamera(JNIEnv *env,
 	// Start the tracker:
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::Tracker* markerTracker = trackerManager.getTracker(
-			QCAR::Tracker::MARKER_TRACKER);
+			QCAR::MarkerTracker::getClassType());
 	if (markerTracker != 0)
 		markerTracker->start();
 
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 	if (imageTracker != 0)
 		imageTracker->start();
 
@@ -473,13 +475,13 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_stopCamera(JNIEnv *, jobject) {
 	// Stop the tracker:
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::Tracker* markerTracker = trackerManager.getTracker(
-			QCAR::Tracker::MARKER_TRACKER);
+			QCAR::MarkerTracker::getClassType());
 	if (markerTracker != 0)
 		markerTracker->stop();
 
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 	if (imageTracker != 0)
 		imageTracker->stop();
 
@@ -555,7 +557,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_destroyTrackerData(JNIEnv *env,
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 	if (imageTracker == NULL) {
 		return 0;
 	}
@@ -596,7 +598,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_initCloudReco(JNIEnv *, jobject) {
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 
 	assert(imageTracker != NULL);
 
@@ -630,7 +632,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitCloudReco(JNIEnv *,
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 
 	if (imageTracker == NULL) {
 		LOG(
@@ -651,7 +653,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_enterScanningModeNative(JNIEnv*,
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	QCAR::ImageTracker* imageTracker =
 			static_cast<QCAR::ImageTracker*>(trackerManager.getTracker(
-					QCAR::Tracker::IMAGE_TRACKER));
+					QCAR::ImageTracker::getClassType()));
 
 	assert(imageTracker != 0);
 

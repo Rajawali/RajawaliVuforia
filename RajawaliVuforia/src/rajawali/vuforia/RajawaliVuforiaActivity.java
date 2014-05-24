@@ -42,7 +42,7 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     static final int UPDATE_ERROR_TIMESTAMP_OUT_OF_RANGE = -7;
     static final int UPDATE_ERROR_REQUEST_TIMEOUT = -8;
     
-	private static final String NATIVE_LIB_QCAR = "QCAR";
+	private static final String NATIVE_LIB_VUFORIA = "Vuforia";
 	private static final String NATIVE_LIB_RAJAWALI_VUFORIA = "RajawaliVuforia";
 	
     private int mScreenWidth = 0;
@@ -57,7 +57,7 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     
 	static
 	{
-		loadLibrary(NATIVE_LIB_QCAR);
+		loadLibrary(NATIVE_LIB_VUFORIA);
 		loadLibrary(NATIVE_LIB_RAJAWALI_VUFORIA);
 	}
 

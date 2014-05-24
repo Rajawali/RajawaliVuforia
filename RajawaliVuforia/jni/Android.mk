@@ -17,9 +17,9 @@ LOCAL_PATH := $(call my-dir)
 # and setting the include path for library-specific header files.
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := QCAR-prebuilt
-LOCAL_SRC_FILES = ../../vuforia-sdk-android-2-6-10/build/lib/$(TARGET_ARCH_ABI)/libQCAR.so
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../../vuforia-sdk-android-2-6-10/build/include
+LOCAL_MODULE := Vuforia-prebuilt
+LOCAL_SRC_FILES = ../../vuforia-sdk-android-2-8-8/build/lib/$(TARGET_ARCH_ABI)/libVuforia.so
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../../vuforia-sdk-android-2-8-8/build/include
 include $(PREBUILT_SHARED_LIBRARY)
 
 #-----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ LOCAL_LDLIBS := \
 # in the generated file. Here we reference the prebuilt library defined earlier
 # in this makefile.
 
-LOCAL_SHARED_LIBRARIES := QCAR-prebuilt
+LOCAL_SHARED_LIBRARIES := Vuforia-prebuilt
 
 # The LOCAL_SRC_FILES variables must contain a list of C/C++ source files
 # that will be built and assembled into a module. Note that you should not
