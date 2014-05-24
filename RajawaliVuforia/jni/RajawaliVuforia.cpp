@@ -42,6 +42,7 @@ unsigned int videoHeight = 0;
 
 bool isActivityInPortraitMode = false;
 bool activateDataSet = false;
+bool isExtendedTrackingActivated = false;
 QCAR::DataSet* dataSetToActivate = NULL;
 
 QCAR::Matrix44F projectionMatrix;
@@ -71,9 +72,19 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 				return;
 			}
 			imageTracker->activateDataSet(dataSetToActivate);
+
+			if(isExtendedTrackingActivated)
+			{
+				for (int tIdx = 0; tIdx < dataSetToActivate->getNumTrackables(); tIdx++)
+				{
+					QCAR::Trackable* trackable = dataSetToActivate->getTrackable(tIdx);
+					trackable->startExtendedTracking();
+				}
+			}
+
 			dataSetToActivate = NULL;
 		}
-		//NEW code for Cloud Reco
+
 		if (scanningMode) {
 			QCAR::TrackerManager& trackerManager =
 					QCAR::TrackerManager::getInstance();
@@ -392,6 +403,7 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_initApplicationNative(JNIEnv* env,
 JNIEXPORT void JNICALL
 Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitApplicationNative(
 		JNIEnv* env, jobject obj) {
+	isExtendedTrackingActivated = false;
 	LOG(
 			"Java_rajawali_vuforia_RajawaliVuforiaActivity_deinitApplicationNative");
 }
@@ -569,6 +581,51 @@ Java_rajawali_vuforia_RajawaliVuforiaActivity_destroyTrackerData(JNIEnv *env,
 	}
 
 	return 1;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv*, jobject)
+{
+    QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+          trackerManager.getTracker(QCAR::ImageTracker::getClassType()));
+
+    QCAR::DataSet* currentDataSet = imageTracker->getActiveDataSet();
+    if (imageTracker == 0 || currentDataSet == 0)
+    	return JNI_FALSE;
+
+    for (int tIdx = 0; tIdx < currentDataSet->getNumTrackables(); tIdx++)
+    {
+        QCAR::Trackable* trackable = currentDataSet->getTrackable(tIdx);
+        if(!trackable->startExtendedTracking())
+        	return JNI_FALSE;
+    }
+
+    isExtendedTrackingActivated = true;
+    return JNI_TRUE;
+}
+
+
+JNIEXPORT jboolean JNICALL
+Java_rajawali_vuforia_RajawaliVuforiaActivity_stopExtendedTracking(JNIEnv*, jobject)
+{
+    QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+          trackerManager.getTracker(QCAR::ImageTracker::getClassType()));
+
+    QCAR::DataSet* currentDataSet = imageTracker->getActiveDataSet();
+    if (imageTracker == 0 || currentDataSet == 0)
+    	return JNI_FALSE;
+
+    for (int tIdx = 0; tIdx < currentDataSet->getNumTrackables(); tIdx++)
+    {
+    	QCAR::Trackable* trackable = currentDataSet->getTrackable(tIdx);
+        if(!trackable->stopExtendedTracking())
+        	return JNI_FALSE;
+    }
+
+    isExtendedTrackingActivated = false;
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL

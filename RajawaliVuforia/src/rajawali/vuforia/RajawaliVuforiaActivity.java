@@ -432,6 +432,8 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     public native int initCloudRecoTask(); 
     public native boolean getScanningModeNative(); 
     public native String getMetadataNative(); 
+    protected native boolean startExtendedTracking();
+    protected native boolean stopExtendedTracking();
 
     /** A helper for loading native libraries stored in "libs/armeabi*". */
     public static boolean loadLibrary(String nLibName)
