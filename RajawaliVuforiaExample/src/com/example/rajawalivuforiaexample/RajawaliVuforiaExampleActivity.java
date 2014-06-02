@@ -4,9 +4,11 @@ import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaActivity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ToggleButton;
 
@@ -22,6 +24,17 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		useCloudRecognition(true);
 		setCloudRecoDatabase("a75960aa97c3b72a76eb997f9e40d210d5e40bf2",
 				"aac883379f691a2550e80767ccd445ffbaa520ca");
+		
+		LinearLayout ll = new LinearLayout(this);
+		ll.setOrientation(LinearLayout.VERTICAL);
+		ll.setGravity(Gravity.CENTER);
+		
+		ImageView logoView = new ImageView(this);
+		logoView.setImageResource(R.drawable.rajawali_vuforia);
+		ll.addView(logoView);
+		
+		addContentView(ll, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		
 		startVuforia();
 	}
 
