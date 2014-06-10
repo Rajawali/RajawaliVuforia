@@ -10,7 +10,6 @@ import rajawali.math.vector.Vector3;
 import rajawali.primitives.ScreenQuad;
 import rajawali.renderer.RajawaliRenderer;
 import rajawali.renderer.RenderTarget;
-import rajawali.util.RajLog;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 
@@ -56,7 +55,7 @@ public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 		getCurrentCamera().setProjectionMatrix(getFOV(), getVideoWidth(),
 				getVideoHeight());
 		if(mBackgroundRenderTarget == null) {
-			mBackgroundRenderTarget = new RenderTarget(width, height);
+			mBackgroundRenderTarget = new RenderTarget("rajVuforia", width, height);
 			
 			addRenderTarget(mBackgroundRenderTarget);
 			Material material = new Material();
