@@ -1,6 +1,7 @@
 ## Rajawali + Vuforia Integration
 
-[https://www.vuforia.com/](Vuforia SDK) is a product of Qualcomm Austria Research Center GmbH.
+[Vuforia SDK](https://www.vuforia.com/) is a product of Qualcomm Austria Research Center GmbH.
+is a product of Qualcomm Austria Research Center GmbH.
 
 This project integrates the (Rajawali 3D framework)[https://github.com/MasDennis/Rajawali] and the Vuforia Augmented Reality SDK.
 It is currently using Vuforia 2.0.31.
