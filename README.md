@@ -4,7 +4,7 @@
 is a product of Qualcomm Austria Research Center GmbH.
 
 This project integrates the (Rajawali 3D framework)[https://github.com/MasDennis/Rajawali] and the Vuforia Augmented Reality SDK.
-It is currently using Vuforia 2.0.31.
+It is currently using Vuforia 3.0.9.
 
 Features:
 * Frame Markers
@@ -15,13 +15,23 @@ Features:
 
 [http://www.youtube.com/watch?v=rjLa4K9Ffuo](http://www.youtube.com/watch?v=rjLa4K9Ffuo)
 
-## Setup
+#How To Run The Example
 
-1. Clone or download a copy of the Rajawali source code.
-2. Clone or download a copy of the RajawaliVuforia source code.
-3. Import the Rajawali project into Eclipse.
-4. In your project's settings, [add a library reference](https://developer.android.com/tools/projects/projects-eclipse.html#ReferencingLibraryProject) to Rajawali.
-5. In your project's settings, [add a library reference](https://developer.android.com/tools/projects/projects-eclipse.html#ReferencingLibraryProject) to RajawaliVuforia.
+You need a local build of the latest RajawaliVuforia Framework. Currently RajawaliVuforia is not available on maven so a local build must be created. To build a local release of RajawaliVuforia simply perform a checkout of the library then run the gradle tasks ```clean assembleRelease uploadArchives```.
+
+## Linux
+```
+git clone https://github.com/Rajawali/RajawaliVuforia.git
+./RajawaliVuforia/RajawaliVuforia/gradlew clean assembleRelease uploadArchives
+```
+
+## Windows
+```
+git clone https://github.com/Rajawali/RajawaliVuforia.git
+./RajawaliVuforia/RajawaliVuforia/gradlew.bat clean assembleRelease uploadArchives
+```
+
+Make sure to copy the library (.so) files to app/src/main/jniLibs.
 
 ![Rajawali + Vuforia](http://www.rozengain.com/files/rajawali/rajawali-vuforia-001.jpg)
 ![Rajawali + Vuforia](http://www.rozengain.com/files/rajawali/rajawali-vuforia-002.jpg)

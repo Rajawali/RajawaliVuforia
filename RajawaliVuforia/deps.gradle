@@ -1,0 +1,2 @@
+project.ext.set('depRajawali', 'org.rajawali3d:rajawali:1.0.189-SNAPSHOT@aar')
+project.ext.set('depAndroidSupport', 'com.android.support:support-v13:22.0.0')
