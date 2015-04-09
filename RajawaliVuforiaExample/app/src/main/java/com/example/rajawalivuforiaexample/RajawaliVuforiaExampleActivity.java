@@ -103,10 +103,10 @@ public class RajawaliVuforiaExampleActivity extends RajawaliVuforiaActivity {
 		extendedTrackingButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (((ToggleButton) v).isChecked()) {
-					if(!startExtendedTracking())
+					if(!startExtendedTracking("stones"))
 						RajLog.e("Could not start extended tracking");
 				} else {
-					if(!stopExtendedTracking())
+					if(!stopExtendedTracking("stones"))
 						RajLog.e("Could not stop extended tracking");
 				}
 			}

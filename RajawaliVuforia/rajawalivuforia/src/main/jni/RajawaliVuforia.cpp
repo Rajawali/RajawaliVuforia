@@ -42,7 +42,7 @@ unsigned int videoHeight = 0;
 
 bool isActivityInPortraitMode = false;
 bool activateDataSet = false;
-bool isExtendedTrackingActivated = false;
+bool isExtendedTrackingActivated = true;
 QCAR::DataSet* dataSetToActivate = NULL;
 
 QCAR::Matrix44F projectionMatrix;
@@ -75,6 +75,7 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 
 			if(isExtendedTrackingActivated)
 			{
+			LOG("EXTENDED TRACKINHG ACVITIVATED");
 				for (int tIdx = 0; tIdx < dataSetToActivate->getNumTrackables(); tIdx++)
 				{
 					QCAR::Trackable* trackable = dataSetToActivate->getTrackable(tIdx);
@@ -584,8 +585,9 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_destroyTrackerData(JNIEnv *e
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv*, jobject)
+Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv* env, jobject object, jstring markerName)
 {
+    const char *nativeString = env->GetStringUTFChars(markerName, NULL);
     QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
     QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
           trackerManager.getTracker(QCAR::ImageTracker::getClassType()));
@@ -597,8 +599,10 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv
     for (int tIdx = 0; tIdx < currentDataSet->getNumTrackables(); tIdx++)
     {
         QCAR::Trackable* trackable = currentDataSet->getTrackable(tIdx);
-        if(!trackable->startExtendedTracking())
-        	return JNI_FALSE;
+        if (strcmp(trackable->getName(), nativeString) == 0) {
+            if(!trackable->startExtendedTracking())
+              	return JNI_FALSE;
+        }
     }
 
     isExtendedTrackingActivated = true;
@@ -607,8 +611,9 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv
 
 
 JNIEXPORT jboolean JNICALL
-Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_stopExtendedTracking(JNIEnv*, jobject)
+Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_stopExtendedTracking(JNIEnv* env, jobject object, jstring markerName)
 {
+    const char *nativeString = env->GetStringUTFChars(markerName, NULL);
     QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
     QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
           trackerManager.getTracker(QCAR::ImageTracker::getClassType()));
@@ -620,8 +625,10 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_stopExtendedTracking(JNIEnv*
     for (int tIdx = 0; tIdx < currentDataSet->getNumTrackables(); tIdx++)
     {
     	QCAR::Trackable* trackable = currentDataSet->getTrackable(tIdx);
-        if(!trackable->stopExtendedTracking())
-        	return JNI_FALSE;
+    	if (strcmp(trackable->getName(), nativeString) == 0) {
+            if(!trackable->stopExtendedTracking())
+        	    return JNI_FALSE;
+        }
     }
 
     isExtendedTrackingActivated = false;

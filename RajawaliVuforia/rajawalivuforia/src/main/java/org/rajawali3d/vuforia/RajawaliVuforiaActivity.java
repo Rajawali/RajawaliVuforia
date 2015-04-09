@@ -7,22 +7,35 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.qualcomm.QCAR.QCAR;
+import com.qualcomm.vuforia.CameraDevice;
+import com.qualcomm.vuforia.DataSet;
+import com.qualcomm.vuforia.ImageTracker;
+import com.qualcomm.vuforia.Marker;
+import com.qualcomm.vuforia.MarkerTracker;
+import com.qualcomm.vuforia.State;
+import com.qualcomm.vuforia.Trackable;
+import com.qualcomm.vuforia.Tracker;
+import com.qualcomm.vuforia.TrackerManager;
+import com.qualcomm.vuforia.Vec2F;
+import com.qualcomm.vuforia.Vuforia;
 
-import org.rajawali3d.util.RajLog;
+import org.rajawali3d.renderer.RajawaliRenderer;
 import org.rajawali3d.surface.IRajawaliSurface;
 import org.rajawali3d.surface.RajawaliSurfaceView;
-import org.rajawali3d.renderer.RajawaliRenderer;
+import org.rajawali3d.util.RajLog;
 
-public abstract class RajawaliVuforiaActivity extends Activity {
-	protected static int TRACKER_TYPE_IMAGE = 0;
-	protected static int TRACKER_TYPE_MARKER = 1;
-		
+public abstract class RajawaliVuforiaActivity extends Activity implements Vuforia.UpdateCallbackInterface {
+    protected enum TrackerType {
+        Image, Marker
+    }
+
     private static final int APPSTATUS_UNINITED         = -1;
     private static final int APPSTATUS_INIT_APP         = 0;
     private static final int APPSTATUS_INIT_QCAR        = 1;
@@ -48,27 +61,20 @@ public abstract class RajawaliVuforiaActivity extends Activity {
     static final int UPDATE_ERROR_TIMESTAMP_OUT_OF_RANGE = -7;
     static final int UPDATE_ERROR_REQUEST_TIMEOUT = -8;
     
-	private static final String NATIVE_LIB_VUFORIA = "Vuforia";
-	private static final String NATIVE_LIB_RAJAWALI_VUFORIA = "RajawaliVuforia";
-
     private RajawaliRenderer mRenderer;
     private int mScreenWidth = 0;
     private int mScreenHeight = 0;
     private int mAppStatus = APPSTATUS_UNINITED;
     private int mFocusMode;
     private int mScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-    private InitQCARTask mInitQCARTask;
-    private Object mShutdownLock = new Object();
+    private boolean mIsActivityInPortraitMode;
+    private boolean mIsExtendedTrackingActivated;
+    private InitVuforiaTask mInitQCARTask;
+    private final Object mShutdownLock = new Object();
     private boolean mUseCloudRecognition = false;
-    private InitCloudRecoTask mInitCloudRecoTask;
+    //private InitCloudRecoTask mInitCloudRecoTask;
     
-	static
-	{
-		loadLibrary(NATIVE_LIB_VUFORIA);
-		loadLibrary(NATIVE_LIB_RAJAWALI_VUFORIA);
-	}
-
-	 /** An async task to initialize cloud-based recognition asynchronously. */
+	 /** An async task to initialize cloud-based recognition asynchronously.
     private class InitCloudRecoTask extends AsyncTask<Void, Integer, Boolean>
     {
         // Initialize with invalid value
@@ -88,7 +94,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
 
         protected void onPostExecute(Boolean result)
         {
-            RajLog.d("InitCloudRecoTask::onPostExecute: execution "
+            RajLog.d("InitCloudRecoTask.onPostExecute: execution "
                     + (result ? "successful" : "failed"));
 
             if (result)
@@ -137,9 +143,8 @@ public abstract class RajawaliVuforiaActivity extends Activity {
             }
         }
     }
-    
-    /** An async task to initialize QCAR asynchronously. */
-    private class InitQCARTask extends AsyncTask<Void, Integer, Boolean>
+    */
+    private class InitVuforiaTask extends AsyncTask<Void, Integer, Boolean>
     {
         private int mProgressValue = -1;
 
@@ -147,11 +152,11 @@ public abstract class RajawaliVuforiaActivity extends Activity {
         {
             synchronized (mShutdownLock)
             {
-                QCAR.setInitParameters(RajawaliVuforiaActivity.this, QCAR.GL_20);
+                Vuforia.setInitParameters(RajawaliVuforiaActivity.this, Vuforia.GL_20);
 
                 do
                 {
-                    mProgressValue = QCAR.init();
+                    mProgressValue = Vuforia.init();
                     publishProgress(mProgressValue);
                 } while (!isCancelled() && mProgressValue >= 0
                          && mProgressValue < 100);
@@ -168,10 +173,17 @@ public abstract class RajawaliVuforiaActivity extends Activity {
         {
             if (result)
             {
-                RajLog.d("InitQCARTask::onPostExecute: QCAR " +
-                              "initialization successful");
+                RajLog.d("InitVuforiaTask::onPostExecute: Vuforia initialization successful");
 
-                updateApplicationStatus(APPSTATUS_INIT_TRACKER);
+                boolean setupTrackersResult = setupTracker();
+
+                if(setupTrackersResult) {
+                    boolean initARResult = initApplicationAR();
+
+                    if(initARResult) {
+                        Vuforia.registerCallback(RajawaliVuforiaActivity.this);
+                    }
+                }
             }
             else
             {
@@ -233,7 +245,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
         {
             updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
         }
-    };
+    }
 	
     public void onConfigurationChanged(Configuration config)
     {
@@ -241,8 +253,8 @@ public abstract class RajawaliVuforiaActivity extends Activity {
 
         storeScreenDimensions();
 
-        if (QCAR.isInitialized() && (mAppStatus == APPSTATUS_CAMERA_RUNNING))
-            setProjectionMatrix();
+//        if (QCAR.isInitialized() && (mAppStatus == APPSTATUS_CAMERA_RUNNING))
+//            setProjectionMatrix();
     }
     
     protected void onPause()
@@ -261,24 +273,23 @@ public abstract class RajawaliVuforiaActivity extends Activity {
         super.onDestroy();
 
         if (mInitQCARTask != null &&
-            mInitQCARTask.getStatus() != InitQCARTask.Status.FINISHED)
+            mInitQCARTask.getStatus() != InitVuforiaTask.Status.FINISHED)
         {
             mInitQCARTask.cancel(true);
             mInitQCARTask = null;
         }
 
-        if (mInitCloudRecoTask != null
-                && mInitCloudRecoTask.getStatus() != InitCloudRecoTask.Status.FINISHED)
-        {
-            mInitCloudRecoTask.cancel(true);
-            mInitCloudRecoTask = null;
-        }
+//        if (mInitCloudRecoTask != null
+//                && mInitCloudRecoTask.getStatus() != InitCloudRecoTask.Status.FINISHED)
+//        {
+//            mInitCloudRecoTask.cancel(true);
+//            mInitCloudRecoTask = null;
+//        }
         
         synchronized (mShutdownLock) {
         	destroyTrackerData();
-            deinitApplicationNative();
             deinitTracker();
-            deinitCloudReco();
+//            deinitCloudReco();
             QCAR.deinit();
         }
 
@@ -311,7 +322,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
             case APPSTATUS_INIT_QCAR:
                 try
                 {
-                    mInitQCARTask = new InitQCARTask();
+                    mInitQCARTask = new InitVuforiaTask();
                     mInitQCARTask.execute();
                 }
                 catch (Exception e)
@@ -329,8 +340,8 @@ public abstract class RajawaliVuforiaActivity extends Activity {
             	{
 	                try
 	                {
-	                    mInitCloudRecoTask = new InitCloudRecoTask();
-	                    mInitCloudRecoTask.execute();
+//	                    mInitCloudRecoTask = new InitCloudRecoTask();
+//	                    mInitCloudRecoTask.execute();
 	                }
 	                catch (Exception e)
 	                {
@@ -359,7 +370,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
 
             case APPSTATUS_CAMERA_RUNNING:
                 startCamera();
-                setProjectionMatrix();
+//                setProjectionMatrix();
                 mFocusMode = FOCUS_MODE_CONTINUOUS_AUTO;
                 if(!setFocusMode(mFocusMode))
                 {
@@ -377,15 +388,20 @@ public abstract class RajawaliVuforiaActivity extends Activity {
 	
     private void initApplication()
     {
+        if((mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR)
+                && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))
+            mScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;
+
         setRequestedOrientation(mScreenOrientation);
-        setActivityPortraitMode(
-            mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        updateActivityOrientation();
 
         storeScreenDimensions();
 
         getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        );
     }
     
     public void setScreenOrientation(final int screenOrientation)
@@ -398,16 +414,28 @@ public abstract class RajawaliVuforiaActivity extends Activity {
     	return mScreenOrientation;
     }
     
-    protected void setupTracker()
+    protected abstract boolean setupTracker();
+
+    protected abstract boolean initApplicationAR();
+
+    private void updateActivityOrientation()
     {
-    	updateApplicationStatus(APPSTATUS_INIT_APP_AR);
+        Configuration config = getResources().getConfiguration();
+
+        switch (config.orientation)
+        {
+            case Configuration.ORIENTATION_PORTRAIT:
+                mIsActivityInPortraitMode = true;
+                break;
+            case Configuration.ORIENTATION_LANDSCAPE:
+                mIsActivityInPortraitMode = false;
+                break;
+            case Configuration.ORIENTATION_UNDEFINED:
+            default:
+                break;
+        }
     }
-    
-    protected void initApplicationAR()
-    {
-        initApplicationNative(mScreenWidth, mScreenHeight);
-    }
-    
+
     protected void initRajawali()
     {
         if(mRenderer == null) {
@@ -431,49 +459,240 @@ public abstract class RajawaliVuforiaActivity extends Activity {
     	mUseCloudRecognition = value;
     }
   
-    protected native void initApplicationNative(int width, int height);
-    protected native void setActivityPortraitMode(boolean isPortrait);
-    protected native void deinitApplicationNative();
-    public native int initTracker(int trackerType);
-    protected native int createFrameMarker(int markerId, String markerName, float width, float height);
-    protected native int createImageMarker(String dataSetFile);
-    public native void deinitTracker();
-    private native int destroyTrackerData();
-    protected native void startCamera();
-    protected native void stopCamera();
-    protected native void setProjectionMatrix();
-    protected native boolean autofocus();
-    protected native boolean setFocusMode(int mode);
-    public native int initCloudReco();
-    public native void setCloudRecoDatabase(String kAccessKey, String kSecretKey);
-    public native void deinitCloudReco();
-    public native void enterScanningModeNative();
-    public native int initCloudRecoTask(); 
-    public native boolean getScanningModeNative(); 
-    public native String getMetadataNative(); 
-    protected native boolean startExtendedTracking();
-    protected native boolean stopExtendedTracking();
+    protected void setActivityPortraitMode(boolean isPortrait) {
+        mIsActivityInPortraitMode = isPortrait;
+    }
 
-    /** A helper for loading native libraries stored in "libs/armeabi*". */
-    public static boolean loadLibrary(String nLibName)
+    public boolean initTracker(TrackerType trackerType) {
+        TrackerManager manager = TrackerManager.getInstance();
+
+        if(trackerType == TrackerType.Image) {
+            Tracker tracker = manager.initTracker(ImageTracker.getClassType());
+            if(tracker == null) {
+                RajLog.e("Failed to initialize ImageTracker.");
+                return false;
+            }
+
+            RajLog.d("Successfully initialized ImageTracker.");
+        } else if(trackerType == TrackerType.Marker) {
+            Tracker trackerBase = manager.initTracker(MarkerTracker.getClassType());
+            MarkerTracker markerTracker = (MarkerTracker) trackerBase;
+
+            if(markerTracker == null) {
+                RajLog.e("Failed to initialize MarkerTracker.");
+                return false;
+            }
+
+            RajLog.d("Successfully initialized MarkerTracker.");
+        }
+
+        return true;
+    }
+
+
+    protected boolean createFrameMarker(int markerId, String markerName, float width, float height) {
+        TrackerManager manager = TrackerManager.getInstance();
+        MarkerTracker tracker = (MarkerTracker) manager.getTracker(MarkerTracker.getClassType());
+
+        if (tracker == null) {
+            RajLog.e("Couldn't create FrameMarker " + markerName);
+            return false;
+        }
+
+        Marker marker = tracker.createFrameMarker(markerId, markerName, new Vec2F(width, height));
+
+        if(marker == null) {
+            RajLog.e("Failed to create FrameMarker " + markerName);
+            return false;
+        }
+
+        return true;
+    }
+
+    protected boolean createImageMarker(String dataSetFile) {
+        TrackerManager manager = TrackerManager.getInstance();
+        ImageTracker tracker = (ImageTracker) manager.getTracker(ImageTracker.getClassType());
+
+        if (tracker == null) {
+            RajLog.e("Couldn't create ImageMarker");
+            return false;
+        }
+
+        DataSet dataSet = tracker.createDataSet();
+
+        if (dataSet == null) {
+            RajLog.e("Failed to create a new tracking data.");
+            return false;
+        }
+
+        if (!dataSet.load(dataSetFile, DataSet.STORAGE_TYPE.STORAGE_APPRESOURCE)) {
+            RajLog.e("Failed to load data set " + dataSetFile);
+            return false;
+        }
+
+        if (!tracker.activateDataSet(dataSet)) {
+            RajLog.e("Failed to activate data set.");
+            return false;
+        }
+
+        RajLog.d("Successfully loaded and activated data set.");
+
+        return true;
+    }
+
+    public boolean deinitTracker() {
+        TrackerManager trackerManager = TrackerManager.getInstance();
+        if (trackerManager.getTracker(MarkerTracker.getClassType()) != null)
+            trackerManager.deinitTracker(MarkerTracker.getClassType());
+        if (trackerManager.getTracker(ImageTracker.getClassType()) != null)
+            trackerManager.deinitTracker(ImageTracker.getClassType());
+
+        return true;
+    }
+
+    private boolean destroyTrackerData() {
+        TrackerManager trackerManager = TrackerManager.getInstance();
+        ImageTracker imageTracker = (ImageTracker)trackerManager.getTracker(ImageTracker.getClassType());
+        if (imageTracker == null) {
+            return false;
+        }
+
+        for (int tIdx = 0; tIdx < imageTracker.getActiveDataSetCount(); tIdx++) {
+            DataSet dataSet = imageTracker.getActiveDataSet(tIdx);
+            imageTracker.deactivateDataSet(dataSet);
+            imageTracker.destroyDataSet(dataSet);
+        }
+
+        return true;
+    }
+
+    protected boolean startCamera() {
+        int camera = CameraDevice.CAMERA.CAMERA_DEFAULT;
+
+        if (!CameraDevice.getInstance().init(camera)) {
+            RajLog.e("Unable to open camera device: " + camera);
+            return false;
+        }
+
+        //configureVideoBackground();
+
+        if (!CameraDevice.getInstance().selectVideoMode(
+                CameraDevice.MODE.MODE_DEFAULT))
+        {
+            RajLog.e("Unable to set video mode.");
+            return false;
+        }
+
+        if (CameraDevice.getInstance().start()) {
+            RajLog.e("Unable to start camera device: " + camera);
+            return false;
+        }
+
+        TrackerManager trackerManager = TrackerManager.getInstance();
+        Tracker markerTracker = trackerManager.getTracker(MarkerTracker.getClassType());
+        if (markerTracker != null)
+            markerTracker.start();
+
+        ImageTracker imageTracker = (ImageTracker) trackerManager.getTracker(ImageTracker.getClassType());
+        if (imageTracker != null)
+            imageTracker.start();
+
+        // Start cloud based recognition if we are in scanning mode:
+//        if (scanningMode) {
+//            QCAR::TargetFinder* targetFinder = imageTracker->getTargetFinder();
+//            assert(targetFinder != 0);
+//
+//            targetFinder->startRecognition();
+//        }
+        return true;
+    }
+
+    protected void stopCamera() {
+        TrackerManager trackerManager = TrackerManager.getInstance();
+        Tracker markerTracker = trackerManager.getTracker(
+                MarkerTracker.getClassType());
+        if (markerTracker != null)
+            markerTracker.stop();
+
+        ImageTracker imageTracker = (ImageTracker)trackerManager.getTracker(ImageTracker.getClassType());
+        if (imageTracker != null)
+            imageTracker.stop();
+
+        CameraDevice.getInstance().stop();
+
+        /*
+        // Stop Cloud Reco:
+        TargetFinder* targetFinder = imageTracker->getTargetFinder();
+        assert(targetFinder != 0);
+
+        targetFinder->stop();
+
+        // Clears the trackables
+        targetFinder->clearTrackables();
+        */
+
+        CameraDevice.getInstance().deinit();
+
+//        initStateVariables();
+    }
+
+    protected boolean setFocusMode(int mode) {
+        int qcarFocusMode;
+
+        switch ((int) mode) {
+            case 0:
+                qcarFocusMode = CameraDevice.FOCUS_MODE.FOCUS_MODE_NORMAL;
+                break;
+
+            case 1:
+                qcarFocusMode = CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO;
+                break;
+
+            case 2:
+                qcarFocusMode = CameraDevice.FOCUS_MODE.FOCUS_MODE_INFINITY;
+                break;
+
+            case 3:
+                qcarFocusMode = CameraDevice.FOCUS_MODE.FOCUS_MODE_MACRO;
+                break;
+
+            default:
+                return false;
+        }
+
+        return CameraDevice.getInstance().setFocusMode(qcarFocusMode);
+    }
+
+//    public int initCloudReco();
+//    public void setCloudRecoDatabase(String kAccessKey, String kSecretKey);
+//    public void deinitCloudReco();
+//    public void enterScanningModeNative();
+//    public int initCloudRecoTask();
+//    public boolean getScanningModeNative();
+//    public String getMetadataNative();
+    protected boolean extendedTrackingEnabled(boolean enabled) {
+        TrackerManager trackerManager = TrackerManager.getInstance();
+        ImageTracker imageTracker = (ImageTracker) trackerManager.getTracker(ImageTracker.getClassType());
+
+        DataSet currentDataSet = imageTracker.getActiveDataSet();
+        if (imageTracker == null || currentDataSet == null)
+            return false;
+
+        for (int tIdx = 0; tIdx < currentDataSet.getNumTrackables(); tIdx++)
+        {
+            Trackable trackable = currentDataSet.getTrackable(tIdx);
+            if(!trackable.stopExtendedTracking()) {
+                    return false;
+            }
+        }
+
+        mIsExtendedTrackingActivated = enabled;
+
+        return true;
+    }
+
+    public void onQCARUpdate(State state)
     {
-        try
-        {
-            System.loadLibrary(nLibName);
-            RajLog.i("Native library lib" + nLibName + ".so loaded");
-            return true;
-        }
-        catch (UnsatisfiedLinkError ulee)
-        {
-            RajLog.e("The library lib" + nLibName +
-                            ".so could not be loaded");
-        }
-        catch (SecurityException se)
-        {
-            RajLog.e("The library lib" + nLibName +
-                            ".so was not allowed to be loaded");
-        }
 
-        return false;
     }
 }
