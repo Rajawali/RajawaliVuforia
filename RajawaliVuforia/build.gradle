@@ -17,6 +17,6 @@ allprojects {
         mavenLocal()
         jcenter()
         // OSS Nexus Snapshots
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        //maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
