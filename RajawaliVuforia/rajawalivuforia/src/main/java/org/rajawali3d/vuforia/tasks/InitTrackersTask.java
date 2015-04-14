@@ -6,23 +6,23 @@ import com.qualcomm.vuforia.Tracker;
 import com.qualcomm.vuforia.TrackerManager;
 
 import org.rajawali3d.util.RajLog;
-import org.rajawali3d.vuforia.IVuforiaActivity;
-import org.rajawali3d.vuforia.VuforiaController;
+import org.rajawali3d.vuforia.IRajawaliVuforiaControllerListener;
+import org.rajawali3d.vuforia.RajawaliVuforiaController;
 
 public class InitTrackersTask implements IRajawaliVuforiaTask {
     @Override
-    public void execute(VuforiaController controller) {
+    public void execute(RajawaliVuforiaController controller) {
         TrackerManager manager = TrackerManager.getInstance();
-        IVuforiaActivity vuforiaActivity = controller.getVuforiaActivity();
+        IRajawaliVuforiaControllerListener vuforiaActivity = controller.getListener();
 
-        VuforiaController.RVTrackerType[] trackerTypes = vuforiaActivity.getRequiredTrackerTypes();
+        RajawaliVuforiaController.RVTrackerType[] trackerTypes = vuforiaActivity.getRequiredTrackerTypes();
 
         if(trackerTypes == null || trackerTypes.length == 0) {
             controller.taskFail(this, "No tracker types specified.");
         }
 
-        for(VuforiaController.RVTrackerType trackerType : trackerTypes) {
-            if(trackerType == VuforiaController.RVTrackerType.Image) {
+        for(RajawaliVuforiaController.RVTrackerType trackerType : trackerTypes) {
+            if(trackerType == RajawaliVuforiaController.RVTrackerType.Image) {
                 Tracker tracker = manager.initTracker(ImageTracker.getClassType());
                 if(tracker == null) {
                     controller.taskFail(this, "Failed to initialize ImageTracker.");
@@ -30,7 +30,7 @@ public class InitTrackersTask implements IRajawaliVuforiaTask {
                 }
 
                 RajLog.d("Successfully initialized ImageTracker.");
-            } else if(trackerType == VuforiaController.RVTrackerType.Marker) {
+            } else if(trackerType == RajawaliVuforiaController.RVTrackerType.Marker) {
                 Tracker trackerBase = manager.initTracker(MarkerTracker.getClassType());
                 MarkerTracker markerTracker = (MarkerTracker) trackerBase;
 
@@ -45,4 +45,6 @@ public class InitTrackersTask implements IRajawaliVuforiaTask {
 
         controller.taskComplete(this);
     }
+
+    public void cancel() {}
 }

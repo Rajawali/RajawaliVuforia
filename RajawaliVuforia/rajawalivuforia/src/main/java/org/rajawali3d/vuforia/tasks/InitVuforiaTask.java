@@ -4,19 +4,20 @@ import android.os.AsyncTask;
 
 import com.qualcomm.vuforia.Vuforia;
 
-import org.rajawali3d.vuforia.VuforiaController;
+import org.rajawali3d.vuforia.RajawaliVuforiaController;
 
 public class InitVuforiaTask implements IRajawaliVuforiaTask {
-    private VuforiaController mController;
+    private RajawaliVuforiaController mController;
+    private Task mTask;
 
     @Override
-    public void execute(VuforiaController controller) {
+    public void execute(RajawaliVuforiaController controller) {
         mController = controller;
-        new Task().execute();
+        mTask = new Task();
+        mTask.execute();
     }
 
     private class Task extends AsyncTask<Void, Integer, Boolean> {
-        private VuforiaController mController;
         private int mProgressValue = -1;
 
         @Override
@@ -35,15 +36,21 @@ public class InitVuforiaTask implements IRajawaliVuforiaTask {
         }
 
         protected void onProgressUpdate(Integer... values) {
-            mController.getVuforiaActivity().onInitVuforiaProgress(values[0]);
+            mController.getListener().onInitVuforiaProgress(values[0]);
         }
 
         protected void onPostExecute(Boolean result) {
             if(result) {
                 mController.taskComplete(InitVuforiaTask.this);
             } else {
-                mController.taskFail(InitVuforiaTask.this, "Vuforia initialization failed.");
+                mController.taskFail(InitVuforiaTask.this, "Vuforia initialization failed. " + mProgressValue);
             }
+        }
+    }
+
+    public void cancel() {
+        if(mTask != null) {
+            mTask.cancel(true);
         }
     }
 }

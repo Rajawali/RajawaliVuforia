@@ -1,6 +1,6 @@
 package org.rajawali3d.vuforia.trackers;
 
-import org.rajawali3d.vuforia.VuforiaController;
+import org.rajawali3d.vuforia.RajawaliVuforiaController;
 
 public class RVMarkerTracker extends RVTracker {
     private int mMarkerId;
@@ -9,7 +9,11 @@ public class RVMarkerTracker extends RVTracker {
     private float mHeight;
 
     public RVMarkerTracker(int markerId, String markerName, float width, float height) {
-        super(VuforiaController.RVTrackerType.Marker);
+        super(RajawaliVuforiaController.RVTrackerType.Marker);
+        mMarkerId = markerId;
+        mMarkerName = markerName;
+        mWidth = width;
+        mHeight = height;
     }
 
     public int getMarkerId() {

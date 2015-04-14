@@ -5,13 +5,13 @@ import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.view.WindowManager;
 
-import org.rajawali3d.vuforia.IVuforiaActivity;
-import org.rajawali3d.vuforia.VuforiaController;
+import org.rajawali3d.vuforia.IRajawaliVuforiaControllerListener;
+import org.rajawali3d.vuforia.RajawaliVuforiaController;
 
 public class InitActivityTask implements IRajawaliVuforiaTask {
-    public void execute(VuforiaController controller) {
-        IVuforiaActivity vuforiaActivity = controller.getVuforiaActivity();
-        Activity activity = controller.getVuforiaActivity().getActivity();
+    public void execute(RajawaliVuforiaController controller) {
+        IRajawaliVuforiaControllerListener vuforiaActivity = controller.getListener();
+        Activity activity = controller.getListener().getActivity();
         int screenOrientation = vuforiaActivity.getRequiredScreenOrientation();
 
         if((screenOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR)
@@ -31,4 +31,6 @@ public class InitActivityTask implements IRajawaliVuforiaTask {
 
         controller.taskComplete(this);
     }
+
+    public void cancel() {}
 }

@@ -4,23 +4,25 @@ import com.qualcomm.vuforia.DataSet;
 import com.qualcomm.vuforia.ImageTracker;
 import com.qualcomm.vuforia.Marker;
 import com.qualcomm.vuforia.MarkerTracker;
+import com.qualcomm.vuforia.Trackable;
 import com.qualcomm.vuforia.TrackerManager;
 import com.qualcomm.vuforia.Vec2F;
 import com.qualcomm.vuforia.Vuforia;
 
-import org.rajawali3d.vuforia.IVuforiaActivity;
-import org.rajawali3d.vuforia.VuforiaController;
+import org.rajawali3d.util.RajLog;
+import org.rajawali3d.vuforia.IRajawaliVuforiaControllerListener;
+import org.rajawali3d.vuforia.RajawaliVuforiaController;
 import org.rajawali3d.vuforia.trackers.RVImageTracker;
 import org.rajawali3d.vuforia.trackers.RVMarkerTracker;
 import org.rajawali3d.vuforia.trackers.RVTracker;
 
 public class LoadTrackersDataTask implements IRajawaliVuforiaTask {
-    private VuforiaController mController;
+    private RajawaliVuforiaController mController;
 
     @Override
-    public void execute(VuforiaController controller) {
+    public void execute(RajawaliVuforiaController controller) {
         mController = controller;
-        IVuforiaActivity vuforiaActivity = controller.getVuforiaActivity();
+        IRajawaliVuforiaControllerListener vuforiaActivity = controller.getListener();
         RVTracker[] trackers = vuforiaActivity.getRequiredTrackers();
 
         for(RVTracker tracker : trackers) {
@@ -37,6 +39,8 @@ public class LoadTrackersDataTask implements IRajawaliVuforiaTask {
         }
 
         Vuforia.registerCallback(controller);
+
+        controller.hasStarted(true);
 
         mController.taskComplete(this);
     }
@@ -55,6 +59,8 @@ public class LoadTrackersDataTask implements IRajawaliVuforiaTask {
         if(marker == null) {
             mController.taskFail(this, "Failed to create FrameMarker " + t.getMarkerName());
         }
+
+        RajLog.d("Successfully created FrameMarker "+ t.getMarkerName());
     }
 
     protected void createImageTracker(RVImageTracker t) {
@@ -81,5 +87,23 @@ public class LoadTrackersDataTask implements IRajawaliVuforiaTask {
         if (!tracker.activateDataSet(dataSet)) {
             mController.taskFail(this, "Failed to activate data set.");
         }
+
+        int numTrackables = dataSet.getNumTrackables();
+        for (int count = 0; count < numTrackables; count++)
+        {
+            Trackable trackable = dataSet.getTrackable(count);
+            if(t.enabledExtendedTracking())
+            {
+                trackable.startExtendedTracking();
+            }
+
+            String name = "Current Dataset : " + trackable.getName();
+            trackable.setUserData(name);
+            RajLog.d("UserData: Set the following user data " + (String) trackable.getUserData());
+        }
+
+        RajLog.d("Successfully created ImageMarker "+ t.getDataSetFilePath());
     }
+
+    public void cancel() {}
 }
