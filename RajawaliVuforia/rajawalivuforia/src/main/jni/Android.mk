@@ -18,8 +18,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := Vuforia-prebuilt
-LOCAL_SRC_FILES = ../../../../../vuforia-sdk-android-3-0-9/build/lib/$(TARGET_ARCH_ABI)/libVuforia.so
-LOCAL_EXPORT_C_INCLUDES := ../../../../../vuforia-sdk-android-3-0-9/build/include
+LOCAL_SRC_FILES = ../../../../../vuforia-sdk-android-2-8-8/build/lib/$(TARGET_ARCH_ABI)/libVuforia.so
+LOCAL_EXPORT_C_INCLUDES := ../../../../../vuforia-sdk-android-2-8-8/build/include
 include $(PREBUILT_SHARED_LIBRARY)
 
 #-----------------------------------------------------------------------------

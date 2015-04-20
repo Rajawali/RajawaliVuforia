@@ -434,6 +434,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
     protected native void initApplicationNative(int width, int height);
     protected native void setActivityPortraitMode(boolean isPortrait);
     protected native void deinitApplicationNative();
+    protected native void activateAndStartExtendedTracking();
     public native int initTracker(int trackerType);
     protected native int createFrameMarker(int markerId, String markerName, float width, float height);
     protected native int createImageMarker(String dataSetFile);
