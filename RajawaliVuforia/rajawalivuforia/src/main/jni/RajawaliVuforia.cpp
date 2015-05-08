@@ -39,10 +39,13 @@ unsigned int screenWidth = 0;
 unsigned int screenHeight = 0;
 unsigned int videoWidth = 0;
 unsigned int videoHeight = 0;
+unsigned int maximumSimultaneousImageTargets = 1;
 
 bool isActivityInPortraitMode = false;
 bool activateDataSet = false;
+bool activateExtendedTracking = false;
 bool isExtendedTrackingActivated = false;
+
 QCAR::DataSet* dataSetToActivate = NULL;
 
 QCAR::Matrix44F projectionMatrix;
@@ -75,6 +78,7 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 
 			if(isExtendedTrackingActivated)
 			{
+			    LOG("Activate extended tracking.");
 				for (int tIdx = 0; tIdx < dataSetToActivate->getNumTrackables(); tIdx++)
 				{
 					QCAR::Trackable* trackable = dataSetToActivate->getTrackable(tIdx);
@@ -83,6 +87,30 @@ class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 			}
 
 			dataSetToActivate = NULL;
+		} else if(activateExtendedTracking == true && isExtendedTrackingActivated == false) {
+			LOG("Activating extended tracking!");
+			activateExtendedTracking = false;
+
+			QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+		    QCAR::ImageTracker* imageTracker = static_cast<QCAR::ImageTracker*>(
+		          trackerManager.getTracker(QCAR::ImageTracker::getClassType()));
+
+		    QCAR::DataSet* currentDataSet = imageTracker->getActiveDataSet();
+		    if (imageTracker == 0 || currentDataSet == 0)
+		    	return;
+			//LOG("NUM TRACKABLES %d", currentDataSet->getNumTrackables());
+		    for (int tIdx = 0; tIdx < currentDataSet->getNumTrackables(); tIdx++)
+		    {
+		    	LOG("TRACKABLE %d", tIdx);
+		        QCAR::Trackable* trackable = currentDataSet->getTrackable(tIdx);
+		        if(!trackable->startExtendedTracking()) {
+		        	LOG("Couldn't start extended tracking");
+		        } else {
+		        	LOG("Successfully started extended tracking");
+		        }
+		    }
+
+		    isExtendedTrackingActivated = true;
 		}
 
 		if (scanningMode) {
@@ -392,6 +420,7 @@ JNIEXPORT void JNICALL
 Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initApplicationNative(JNIEnv* env,
 		jobject obj, jint width, jint height) {
 	LOG("Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initApplicationNative");
+	QCAR::setHint(QCAR::HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, maximumSimultaneousImageTargets);
 	QCAR::registerCallback(&updateCallback);
 	// Store screen dimensions
 	screenWidth = width;
@@ -583,6 +612,11 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_destroyTrackerData(JNIEnv *e
 	return 1;
 }
 
+JNIEXPORT void JNICALL
+Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_activateAndStartExtendedTracking(JNIEnv*, jobject) {
+	activateExtendedTracking = true;
+}
+
 JNIEXPORT jboolean JNICALL
 Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_startExtendedTracking(JNIEnv*, jobject)
 {
@@ -739,6 +773,12 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_setCloudRecoDatabase(JNIEnv*
 	kAccessKey = (char *) argvv;
 	argvv = (jbyte*) env->GetStringUTFChars(SecretKey, NULL);
 	kSecretKey = (char *) argvv;
+}
+
+JNIEXPORT void JNICALL
+Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_setMaxSimultaneousImageTargets(JNIEnv* env,
+        jobject obj, jint maxSimImageTargets) {
+    maximumSimultaneousImageTargets = (int)maxSimImageTargets;
 }
 
 JNIEXPORT jstring JNICALL
