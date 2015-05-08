@@ -433,6 +433,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
   
     protected native void initApplicationNative(int width, int height);
     protected native void setActivityPortraitMode(boolean isPortrait);
+    protected native void setMaxSimultaneousImageTargets(int maxSimultaneousImageTargets);
     protected native void deinitApplicationNative();
     protected native void activateAndStartExtendedTracking();
     public native int initTracker(int trackerType);

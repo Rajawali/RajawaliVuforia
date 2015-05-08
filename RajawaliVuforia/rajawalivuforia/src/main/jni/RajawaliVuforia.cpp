@@ -39,6 +39,7 @@ unsigned int screenWidth = 0;
 unsigned int screenHeight = 0;
 unsigned int videoWidth = 0;
 unsigned int videoHeight = 0;
+unsigned int maximumSimultaneousImageTargets = 1;
 
 bool isActivityInPortraitMode = false;
 bool activateDataSet = false;
@@ -419,6 +420,7 @@ JNIEXPORT void JNICALL
 Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initApplicationNative(JNIEnv* env,
 		jobject obj, jint width, jint height) {
 	LOG("Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initApplicationNative");
+	QCAR::setHint(QCAR::HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, maximumSimultaneousImageTargets);
 	QCAR::registerCallback(&updateCallback);
 	// Store screen dimensions
 	screenWidth = width;
@@ -771,6 +773,12 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_setCloudRecoDatabase(JNIEnv*
 	kAccessKey = (char *) argvv;
 	argvv = (jbyte*) env->GetStringUTFChars(SecretKey, NULL);
 	kSecretKey = (char *) argvv;
+}
+
+JNIEXPORT void JNICALL
+Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_setMaxSimultaneousImageTargets(JNIEnv* env,
+        jobject obj, jint maxSimImageTargets) {
+    maximumSimultaneousImageTargets = (int)maxSimImageTargets;
 }
 
 JNIEXPORT jstring JNICALL
