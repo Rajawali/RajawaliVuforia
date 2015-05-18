@@ -52,6 +52,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
 	private static final String NATIVE_LIB_RAJAWALI_VUFORIA = "RajawaliVuforia";
 
     private RajawaliRenderer mRenderer;
+    private RajawaliSurfaceView mSurfaceView;
     private int mScreenWidth = 0;
     private int mScreenHeight = 0;
     private int mAppStatus = APPSTATUS_UNINITED;
@@ -61,6 +62,7 @@ public abstract class RajawaliVuforiaActivity extends Activity {
     private Object mShutdownLock = new Object();
     private boolean mUseCloudRecognition = false;
     private InitCloudRecoTask mInitCloudRecoTask;
+    private boolean mRajawaliIsInitialized;
     
 	static
 	{
@@ -367,7 +369,10 @@ public abstract class RajawaliVuforiaActivity extends Activity {
                     setFocusMode(mFocusMode);
                 }
 
-                initRajawali();
+                if(!mRajawaliIsInitialized) {
+                    initRajawali();
+                    mRajawaliIsInitialized = true;
+                }
                 break;
 
             default:
@@ -414,12 +419,12 @@ public abstract class RajawaliVuforiaActivity extends Activity {
             RajLog.e("initRajawali(): You need so set a renderer first.");
         }
 
-        final RajawaliSurfaceView surface = new RajawaliSurfaceView(this);
-        surface.setFrameRate(60.0);
-        surface.setRenderMode(IRajawaliSurface.RENDERMODE_WHEN_DIRTY);
-        surface.setSurfaceRenderer(mRenderer);
+        mSurfaceView = new RajawaliSurfaceView(this);
+        mSurfaceView.setFrameRate(60.0);
+        mSurfaceView.setRenderMode(IRajawaliSurface.RENDERMODE_WHEN_DIRTY);
+        mSurfaceView.setSurfaceRenderer(mRenderer);
 
-        addContentView(surface, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT));
+        addContentView(mSurfaceView, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     public void setRenderer(RajawaliRenderer renderer) {
