@@ -33,6 +33,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
     public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
 		activity = (RajawaliVuforiaExampleActivity)context;
+        //RajLog.setDebugEnabled(false);
 	}
 
 	protected void initScene() {
@@ -147,6 +148,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 	public void noFrameMarkersFound() {
 	}
 
+
     @Override
 	public void onRenderFrame(GL10 glUnused) {
 		mBob.setVisible(false);
@@ -169,5 +171,11 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
     @Override
     public void onTouchEvent(MotionEvent motionEvent) {
 
+    }
+
+    @Override
+    public void onRenderSurfaceSizeChanged(GL10 gl, int width, int height) {
+        RajLog.i("boo onRenderSurfaceSizeChanged " + this.hashCode());
+        super.onRenderSurfaceSizeChanged(gl, width, height);
     }
 }

@@ -59,8 +59,6 @@ char targetMetadata[CONTENT_MAX];
 static const char* kAccessKey = NULL;
 static const char* kSecretKey = NULL;
 
-jobject activityObj;
-
 class ImageTargets_UpdateCallback: public QCAR::UpdateCallback {
 	virtual void QCAR_onUpdate(QCAR::State&) {
 
@@ -182,7 +180,7 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_setActivityPortraitMode(JNIE
 JNIEXPORT int JNICALL
 Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initTracker(JNIEnv *env,
 		jobject object, jint trackerType) {
-	LOG("Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initTracker");
+	LOG("Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initTrackerox");
 
 	// Initialize the marker tracker:
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
@@ -199,7 +197,7 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initTracker(JNIEnv *env,
 			return 0;
 		}
 
-		LOG("Successfully initialized ImageTracker.");
+		LOG("Successfully initialized ImageTrackerx.");
 	} else if (type == 1) {
 		QCAR::Tracker* trackerBase = trackerManager.initTracker(
 				QCAR::MarkerTracker::getClassType());
@@ -293,7 +291,7 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_deinitTracker(JNIEnv *, jobj
 
 JNIEXPORT void JNICALL
 Java_org_rajawali3d_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env,
-		jobject object, jint frameBufferId, int frameBufferTextureId) {
+		jobject object, jint frameBufferId, jint frameBufferTextureId) {
 
 	//LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
 	jclass ownerClass = env->GetObjectClass(object);
@@ -304,13 +302,10 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env,
 	// Get the state from QCAR and mark the beginning of a rendering section
 	QCAR::State state = QCAR::Renderer::getInstance().begin();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			frameBufferTextureId, 0);
-
+	glBindFramebuffer(GL_FRAMEBUFFER, (int)frameBufferId);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, (int)frameBufferTextureId, 0);
 	// Explicitly render the Video Background
 	QCAR::Renderer::getInstance().drawVideoBackground();
-
 	jfloatArray modelViewMatrixOut = env->NewFloatArray(16);
 
 	// Did we find any trackables this frame?
@@ -319,6 +314,7 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaRenderer_renderFrame(JNIEnv* env,
 		const QCAR::TrackableResult* trackableResult = state.getTrackableResult(
 				tIdx);
 		const QCAR::Trackable& trackable = trackableResult->getTrackable();
+
 		QCAR::Matrix44F modelViewMatrix = QCAR::Tool::convertPose2GLMatrix(
 				trackableResult->getPose());
 		if (isActivityInPortraitMode)
@@ -425,8 +421,6 @@ Java_org_rajawali3d_vuforia_RajawaliVuforiaActivity_initApplicationNative(JNIEnv
 	// Store screen dimensions
 	screenWidth = width;
 	screenHeight = height;
-	activityObj = env->NewGlobalRef(obj);
-
 }
 
 JNIEXPORT void JNICALL
