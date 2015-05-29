@@ -14,10 +14,10 @@ import android.view.WindowManager;
 
 import com.qualcomm.QCAR.QCAR;
 
-import org.rajawali3d.util.RajLog;
+import org.rajawali3d.renderer.RajawaliRenderer;
 import org.rajawali3d.surface.IRajawaliSurface;
 import org.rajawali3d.surface.RajawaliSurfaceView;
-import org.rajawali3d.renderer.RajawaliRenderer;
+import org.rajawali3d.util.RajLog;
 
 public abstract class RajawaliVuforiaActivity extends Activity {
 	protected static int TRACKER_TYPE_IMAGE = 0;
