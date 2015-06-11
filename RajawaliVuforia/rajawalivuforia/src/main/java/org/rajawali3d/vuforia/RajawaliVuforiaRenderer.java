@@ -17,6 +17,9 @@ import android.content.pm.ActivityInfo;
 
 import com.qualcomm.QCAR.QCAR;
 
+/**
+ *
+ */
 public abstract class RajawaliVuforiaRenderer extends RajawaliRenderer {
 	private Vector3 mPosition;
 	private Quaternion mOrientation;
