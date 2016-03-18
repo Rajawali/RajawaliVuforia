@@ -1,5 +1,8 @@
 ## Rajawali + Vuforia Integration
 
+## ATTENTION
+As of 03/17/2016, this template is fully integrated to the examples application which has been moved to the main Rajawali repository: https://github.com/Rajawali/Rajawali. This repository will remain for historical reference but **it is effectively abandoned and no responses from the maintainers should be expected.**
+
 [Vuforia SDK](https://www.vuforia.com/) is a product of Qualcomm Austria Research Center GmbH.
 is a product of Qualcomm Austria Research Center GmbH.
 
